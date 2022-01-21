@@ -11,7 +11,7 @@
 
     "MAXIM_PATH":"${env:MAXIM_PATH}",
 
-    "target":"MAX78002",
+    "target":"MAX78000",
     "board":"EvKit_V1",
 
     "project_name":"${workspaceFolderBasename}",
@@ -20,7 +20,7 @@
     "symbol_file":"${config:program_file}",
 
     "M4_OCD_interface_file":"cmsis-dap.cfg",
-    "M4_OCD_target_file":"max78002.cfg",
+    "M4_OCD_target_file":"max78000.cfg",
     "RV_OCD_interface_file":"ftdi/olimex-arm-usb-ocd-h.cfg",
     "RV_OCD_target_file":"${config:target}-riscv.cfg"
 }
