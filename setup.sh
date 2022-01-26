@@ -2,9 +2,9 @@ echo "\nMAX78000_SDK auto-setup script\n"
 
 echo "Installing packages..."
 # Install packages
-#apt update
-#apt upgrade
-#apt install --yes make libncurses5 libusb-1.0 libusb-0.1-4 libhidapi-libusb0 libhidapi-hidraw0
+apt update
+apt upgrade
+apt install --yes make libncurses5 libusb-1.0 libusb-0.1-4 libhidapi-libusb0 libhidapi-hidraw0
 
 # Get user's home directory
 HOME_DIR=$(getent passwd ${SUDO_USER:-$USER} | cut -d: -f6) # This should work if this script is run with sudo or normally
