@@ -104,6 +104,15 @@ int max20303_camera_power(int on);
  */
 int max20303_sd_power(int on);
 
+/**
+ * @brief      Set state of GPIO.
+ * @param      gpio  GPIO index.
+ * @param      on    1 for ON, 0 for OFF.
+ * @retval     #E_NO_ERROR   If successful.
+ * @retval     "Error Code"  @ref MXC_Error_Codes "Error Code" if unsuccessful.
+ */
+int max20303_gpio(int gpio, int on);
+
 #ifdef __cplusplus
 }
 #endif

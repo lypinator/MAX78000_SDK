@@ -94,6 +94,7 @@
 // Device commands
 #define CMD_GPIO_CONFIG_WRITE   0x01
 #define CMD_GPIO_CONTROL_WRITE  0x03
+#define CMD_GPIO_CONTROL_READ   0x04
 
 #define CMD_LDO1_CONFIG_WRITE   0x40
 #define CMD_LDO1_CONFIG_READ    0x41
@@ -361,12 +362,136 @@ int max20303_sd_power(int on)
         return E_NO_RESPONSE;
     }
 
-    if(on) {
-        buf[0] = 0; // All GPIO low
-    } else {
-        buf[0] = 0x1F; // All GPIO high
+    // Read the current gpio status and set the SD card power bit only (first bit)
+    if ((err = reg_write(REG_AP_CMDOUT, CMD_GPIO_CONTROL_READ)) != E_NO_ERROR) {
+        return err;
     }
 
+    /* The datasheet indicates there is a 5ms (typ), 9ms (max) latency
+       associated with setting commands. */
+    MXC_Delay(MXC_DELAY_MSEC(10));
+
+    /* The datasheet indicates reading the data in APResponse provides
+       verification of the successful execution of an opcode.
+       So let's do just that. */
+    if ((err = reg_read(REG_AP_RESPONSE, buf)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if (buf[0] != CMD_GPIO_CONTROL_READ) {
+        return E_NO_RESPONSE;
+    }
+
+    // read the gpio values
+    if ((err = reg_read(REG_AP_DATAIN0, buf)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if(on) {
+        buf[0] &= ~(1); // First GPIO low, keep current state on others
+    } else {
+        buf[0] |= 1; // First GPIO high, keep current state on others
+    }
+
+    if ((err = reg_write_buf(REG_AP_DATOUT0, buf, 1)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if ((err = reg_write(REG_AP_CMDOUT, CMD_GPIO_CONTROL_WRITE)) != E_NO_ERROR) {
+        return err;
+    }
+
+    /* The datasheet indicates there is a 5ms (typ), 9ms (max) latency
+       associated with setting commands. */
+    MXC_Delay(MXC_DELAY_MSEC(10));
+
+    /* The datasheet indicates reading the data in APResponse provides
+       verification of the successful execution of an opcode.
+       So let's do just that. */
+    if ((err = reg_read(REG_AP_RESPONSE, buf)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if (buf[0] != CMD_GPIO_CONTROL_WRITE) {
+        return E_NO_RESPONSE;
+    }
+
+    return E_NO_ERROR;
+}
+
+int max20303_gpio(int gpio, int on)
+{
+    int err;
+    uint8_t buf[5];
+
+    if (!i2c) {
+        return E_UNINITIALIZED;
+    }
+
+    switch (gpio) {
+        case 0 ... 4: break;
+        default: return E_NO_DEVICE;
+    }
+
+    buf[0] = 4; // GPIO0 in push-pull output mode controlled with AP commands
+    buf[1] = 4; // GPIO1 in push-pull output mode controlled with AP commands
+    buf[2] = 4; // GPIO2 in push-pull output mode controlled with AP commands
+    buf[3] = 4; // GPIO3 in push-pull output mode controlled with AP commands
+    buf[4] = 4; // GPIO4 in push-pull output mode controlled with AP commands
+
+    if ((err = reg_write_buf(REG_AP_DATOUT0, buf, 5)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if ((err = reg_write(REG_AP_CMDOUT, CMD_GPIO_CONFIG_WRITE)) != E_NO_ERROR) {
+        return err;
+    }
+
+    /* The datasheet indicates there is a 5ms (typ), 9ms (max) latency
+       associated with setting commands. */
+    MXC_Delay(MXC_DELAY_MSEC(10));
+
+    /* The datasheet indicates reading the data in APResponse provides
+       verification of the successful execution of an opcode.
+       So let's do just that. */
+    if ((err = reg_read(REG_AP_RESPONSE, buf)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if (buf[0] != CMD_GPIO_CONFIG_WRITE) {
+        return E_NO_RESPONSE;
+    }
+
+    // Read the current gpio status and set the gpio bit only
+    if ((err = reg_write(REG_AP_CMDOUT, CMD_GPIO_CONTROL_READ)) != E_NO_ERROR) {
+        return err;
+    }
+
+    /* The datasheet indicates there is a 5ms (typ), 9ms (max) latency
+       associated with setting commands. */
+    MXC_Delay(MXC_DELAY_MSEC(10));
+
+    /* The datasheet indicates reading the data in APResponse provides
+       verification of the successful execution of an opcode.
+       So let's do just that. */
+    if ((err = reg_read(REG_AP_RESPONSE, buf)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if (buf[0] != CMD_GPIO_CONTROL_READ) {
+        return E_NO_RESPONSE;
+    }
+
+    // read the gpio values
+    if ((err = reg_read(REG_AP_DATAIN0, buf)) != E_NO_ERROR) {
+        return err;
+    }
+
+    if(on) {
+        buf[0] |= 1 << gpio;
+    } else {
+        buf[0] &= ~(1 << gpio);
+    }
 
     if ((err = reg_write_buf(REG_AP_DATOUT0, buf, 1)) != E_NO_ERROR) {
         return err;
