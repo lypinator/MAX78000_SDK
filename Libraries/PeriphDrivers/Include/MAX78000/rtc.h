@@ -104,18 +104,18 @@ int MXC_RTC_SetTimeofdayAlarm (uint32_t ras);
 int MXC_RTC_SetSubsecondAlarm (uint32_t rssa);
 
 /**
- * @brief     Start the Real Time Clock
+ * @brief     Start the Real Time Clock (Blocking function)
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
  */
 int MXC_RTC_Start (void);
 /**
- * @brief     Stop the Real Time Clock
+ * @brief     Stop the Real Time Clock (Blocking function)
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
  */
 int MXC_RTC_Stop (void);
 
 /**
- * @brief     Initialize the sec and ssec registers and enable RTC
+ * @brief     Initialize the sec and ssec registers and enable RTC (Blocking function)
  * @param     sec    set the RTC Sec counter (32-bit)
  * @param     ssec   set the RTC Sub-second counter (8-bit)
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
@@ -123,27 +123,27 @@ int MXC_RTC_Stop (void);
 int MXC_RTC_Init (uint32_t sec, uint8_t ssec);
 
 /**
- * @brief     Allow generation of Square Wave on the SQW pin
+ * @brief     Allow generation of Square Wave on the SQW pin (Blocking function)
  * @param     fq     Frequency output selection
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
  */
 int MXC_RTC_SquareWaveStart (mxc_rtc_freq_sel_t fq);
                              
 /**
- * @brief     Stop the generation of square wave
+ * @brief     Stop the generation of square wave (Blocking function)
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
  */
 int MXC_RTC_SquareWaveStop (void);
 
 /**
- * @brief     Set Trim register value
+ * @brief     Set Trim register value (Blocking function)
  * @param     trm    set the RTC Trim (8-bit, +/- 127)
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
  */
 int MXC_RTC_Trim (int8_t trm);
 
 /**
- * @brief     Enable Interurpts
+ * @brief     Enable Interurpts (Blocking function)
  * @param     mask   The bitwise OR of interrupts to enable.
  *                   See #mxc_rtc_int_en_t for available choices.
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
@@ -151,7 +151,7 @@ int MXC_RTC_Trim (int8_t trm);
 int MXC_RTC_EnableInt (uint32_t mask);
 
 /**
- * @brief     Disable Interurpts
+ * @brief     Disable Interurpts (Blocking function)
  * @param     mask   The mask of interrupts to disable.
  *                   See #mxc_rtc_int_en_t for available choices.
  * @retval    returns Success or Fail, see \ref MXC_ERROR_CODES
@@ -175,13 +175,13 @@ int MXC_RTC_GetFlags (void);
 int MXC_RTC_ClearFlags (int flags);
 
 /**
- * @brief     Get SubSecond
+ * @brief     Get SubSecond or E_BUSY, see /ref MXC_ERROR_CODES
  * @retval    Returns subsecond value
  */
 int MXC_RTC_GetSubSecond (void);
 
 /**
- * @brief     Get Second
+ * @brief     Get Second or E_BUSY, see /ref MXC_ERROR_CODES
  * @retval    returns second value
  */
 int MXC_RTC_GetSecond (void);
@@ -193,6 +193,12 @@ int MXC_RTC_GetSecond (void);
  * @retval    returns Success or Fail, see /ref MXC_ERROR_CODES
  */
 int MXC_RTC_GetTime (uint32_t* sec, uint32_t* subsec);
+
+/**
+ * @brief     Get RTC busy flag.
+ * @retval    returns Success or E_BUSY, see /ref MXC_ERROR_CODES
+ */
+int MXC_RTC_GetBusyFlag(void);
 
 /**@} end of group rtc */
 #ifdef __cplusplus

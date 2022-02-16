@@ -127,3 +127,8 @@ int MXC_RTC_GetTime (uint32_t* sec, uint32_t* subsec)
 {
     return MXC_RTC_RevA_GetTime (sec, subsec);
 }
+
+int MXC_RTC_GetBusyFlag(void)
+{
+    return MXC_RTC_RevA_GetBusyFlag();
+}

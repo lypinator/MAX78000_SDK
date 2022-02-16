@@ -49,11 +49,14 @@
 #include "i2s.h"
 #include "i2s_regs.h"
 #include "led.h"
-#include "max20303.h"
 #include "mxc_delay.h"
 #include "mxc_device.h"
 #include "mxc_sys.h"
 #include "nvic_table.h"
+
+#ifdef BOARD_FTHR_REVA
+#include "max20303.h"
+#endif
 
 #define DMA_CALLBACK		0
 #define I2S_RX_BUFFER_SIZE  256

@@ -49,11 +49,14 @@
 #include "i2s.h"
 #include "i2s_regs.h"
 #include "led.h"
-#include "max20303.h"
 #include "mxc_delay.h"
 #include "mxc_device.h"
 #include "mxc_sys.h"
 #include "nvic_table.h"
+
+#ifdef BOARD_FTHR_REVA
+#include "max20303.h"
+#endif
 
 #define I2S_RX_BUFFER_SIZE  256
 int32_t i2s_rx_buffer[I2S_RX_BUFFER_SIZE];
@@ -155,7 +158,7 @@ int main()
         while (rx_size--) {
             /* Copy captured microphone sample into i2s_rx_buffer. The actual value is 18 MSB of 32-bit word */
             *buf_current++ = ((int32_t) MXC_I2S->fifoch0) >> 14;
-            
+
             if (buf_current > buf_end) {
                 buf_current = buf_start;
             }

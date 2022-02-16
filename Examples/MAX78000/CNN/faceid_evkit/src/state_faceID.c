@@ -42,17 +42,17 @@
 #include "state.h"
 #include "utils.h"
 #include "camera.h"
-#include "touchscreen.h"
 #include "faceID.h"
 #include "utils.h"
 #include "embedding_process.h"
 #include "MAXCAM_Debug.h"
 #include "cnn.h"
 #ifdef BOARD_FTHR_REVA
-#include "tft_fthr.h"
+#include "tft_ili9341.h"
 #endif
 #ifdef BOARD_EVKIT_V1
-#include "tft.h"
+#include "tft_ssd2119.h"
+#include "tsc2046.h"
 #include "bitmap.h"
 #endif
 #include "led.h"

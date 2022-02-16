@@ -50,9 +50,9 @@ endif
 
 # Use these to specify the project.
 ifeq "$(PROJECT_VARIANT)" ""
-PROJECT=$(PROJECT_NAME)
+override PROJECT=$(PROJECT_NAME)
 else
-PROJECT=$(PROJECT_NAME)_$(PROJECT_VARIANT)
+override PROJECT=$(PROJECT_NAME)_$(PROJECT_VARIANT)
 endif
 
 ifeq "$(TARGET)" ""

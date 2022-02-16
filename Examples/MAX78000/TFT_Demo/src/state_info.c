@@ -41,7 +41,7 @@
 #include "keypad.h"
 #include "state.h"
 #include "utils.h"
-#include "tft.h"
+#include "tft_ssd2119.h"
 
 
 //

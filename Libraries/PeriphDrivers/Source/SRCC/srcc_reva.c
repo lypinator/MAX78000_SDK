@@ -85,12 +85,12 @@ void MXC_SRCC_RevA_WriteAllocateDisable(mxc_srcc_reva_regs_t *srcc)
 
 void MXC_SRCC_RevA_CriticalWordFirstEnable(mxc_srcc_reva_regs_t *srcc) //cwfst_dis
 {
-    srcc->cache_ctrl |= MXC_F_SRCC_REVA_CACHE_CTRL_CWFST_DIS;
+    srcc->cache_ctrl &= ~MXC_F_SRCC_REVA_CACHE_CTRL_CWFST_DIS;
 }
 
 void MXC_SRCC_RevA_CriticalWordFirstDisable(mxc_srcc_reva_regs_t *srcc) //cwfst_dis
 {
-    srcc->cache_ctrl &= ~MXC_F_SRCC_REVA_CACHE_CTRL_CWFST_DIS;
+    srcc->cache_ctrl |= MXC_F_SRCC_REVA_CACHE_CTRL_CWFST_DIS;
 }
 
 uint32_t MXC_SRCC_RevA_Ready(mxc_srcc_reva_regs_t *srcc)
