@@ -86,10 +86,12 @@ void RTC_IRQHandler(void)
     if (flags & MXC_F_RTC_CTRL_TOD_ALARM) {
         MXC_RTC_ClearFlags(MXC_F_RTC_CTRL_TOD_ALARM);
         LED_Toggle(LED_TODA);
-        /* Set a new alarm 10 seconds from current time. */
-        time = MXC_RTC_GetSecond();
         
         while (MXC_RTC_DisableInt(MXC_F_RTC_CTRL_TOD_ALARM_IE) == E_BUSY);
+		
+        /* Set a new alarm TIME_OF_DAY_SEC seconds from current time. */
+        /* Don't need to check busy here as it was checked in MXC_RTC_DisableInt() */		
+        time = MXC_RTC_GetSecond();
         
         if (MXC_RTC_SetTimeofdayAlarm(time + TIME_OF_DAY_SEC) != E_NO_ERROR) {
             /* Handle Error */
@@ -125,11 +127,20 @@ void buttonHandler()
 
 void printTime()
 {
-    int day, hr, min, sec;
+    int day, hr, min, sec, rtc_readout;
     double subsec;
-    
-    subsec = MXC_RTC_GetSubSecond() / 4096.0;
-    sec = MXC_RTC_GetSecond();
+
+    do {
+    	rtc_readout = MXC_RTC_GetSubSecond();
+    }
+    while (rtc_readout == E_BUSY);
+    subsec = rtc_readout / 4096.0;
+
+    do {
+    	rtc_readout = MXC_RTC_GetSecond();
+    }
+    while (rtc_readout == E_BUSY);
+    sec = rtc_readout;
     
     day = sec / SECS_PER_DAY;
     sec -= day * SECS_PER_DAY;
@@ -204,6 +215,10 @@ int main(void)
     }
     
     if (MXC_RTC_EnableInt(MXC_F_RTC_CTRL_SSEC_ALARM_IE) == E_BUSY) {
+        return E_BUSY;
+    }
+
+    if (MXC_RTC_SquareWaveStart(MXC_RTC_F_512HZ) == E_BUSY) {
         return E_BUSY;
     }
     

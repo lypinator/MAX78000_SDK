@@ -55,7 +55,8 @@
 #define I2S_CHANNELS 2
 #define I2S_WIDTH    16
 
-static int dma_channel = -1;
+static int tx_dma_channel = -1;
+static int rx_dma_channel = -1;
 
 int MXC_I2S_RevA_Init(mxc_spimss_reva_regs_t *spimss, const mxc_i2s_config_t *config, void(*dma_ctz_cb)(int, int))
 {
@@ -69,8 +70,12 @@ int MXC_I2S_RevA_Init(mxc_spimss_reva_regs_t *spimss, const mxc_i2s_config_t *co
 
     /* Setup SPI_MSS as master, mode 0, 16 bit transfers as I2S Requires */
     spimss->ctrl = MXC_F_SPIMSS_REVA_CTRL_MMEN;
-    spimss->mode = MXC_V_SPIMSS_REVA_MODE_NUMBITS_BITS16 | MXC_F_SPIMSS_REVA_MODE_SS_IO;
-    spimss->dma = MXC_S_SPIMSS_REVA_DMA_TX_FIFO_LVL_ENTRIES8;
+    spimss->mode = MXC_S_SPIMSS_REVA_MODE_NUMBITS_BITS16 | MXC_F_SPIMSS_REVA_MODE_SS_IO;
+
+    spimss->dma = (1 << MXC_F_SPIMSS_DMA_TX_FIFO_LVL_POS) |       /* TX DMA request FIFO level */
+                  MXC_F_SPIMSS_DMA_TX_FIFO_CLR |                    /* Clear TX FIFO */
+                  (1 << MXC_F_SPIMSS_DMA_RX_FIFO_LVL_POS) |       /* RX DMA request FIFO level */
+                  MXC_F_SPIMSS_DMA_RX_FIFO_CLR;                     /* Clear RX FIFO */
 
     /* Setup I2S register from i2s_cfg_t */
     spimss->i2s_ctrl =  config->justify << MXC_F_SPIMSS_REVA_I2S_CTRL_I2S_LJ_POS |
@@ -111,36 +116,40 @@ int MXC_I2S_RevA_Init(mxc_spimss_reva_regs_t *spimss, const mxc_i2s_config_t *co
             return err;
         }
 
-        dma_channel = err;
+        tx_dma_channel = err;
 
-        dma_config.ch = dma_channel;
+        dma_config.ch = tx_dma_channel;
 
-        dma_config.srcwd = MXC_DMA_WIDTH_HALFWORD;
-        dma_config.dstwd = MXC_DMA_WIDTH_WORD;
+        dma_config.srcwd = MXC_DMA_WIDTH_WORD;
+        dma_config.dstwd = MXC_DMA_WIDTH_HALFWORD;
 	  #if TARGET_NUM == 32650
         dma_config.reqsel = MXC_DMA_REQUEST_SPIMSSTX;
 	  #endif
+      #if TARGET_NUM == 32660
+        dma_config.reqsel = MXC_DMA_REQUEST_SPI1TX;
+      #endif
         
         dma_config.srcinc_en = 1;
         dma_config.dstinc_en = 0;
 
-        srcdst.ch = dma_channel;
+        srcdst.ch = tx_dma_channel;
         srcdst.source = config->src_addr;
+        srcdst.dest = NULL;
         srcdst.len = config->length;
 
         MXC_DMA_ConfigChannel(dma_config, srcdst);
-        MXC_DMA_SetChannelInterruptEn(dma_channel, 0, 1);
+        MXC_DMA_SetChannelInterruptEn(tx_dma_channel, 0, 1);
 
-        MXC_DMA->ch[dma_channel].cfg &= ~MXC_F_DMA_CFG_BRST;
-        MXC_DMA->ch[dma_channel].cfg |= (0x1f << MXC_F_DMA_CFG_BRST_POS);
+        MXC_DMA->ch[tx_dma_channel].cfg &= ~MXC_F_DMA_CFG_BRST;
+        MXC_DMA->ch[tx_dma_channel].cfg |= (3 << MXC_F_DMA_CFG_BRST_POS);
 
         if(ctz_en) {
-            MXC_DMA_SetCallback(dma_channel, dma_ctz_cb);
-            MXC_DMA_EnableInt(dma_channel);
+            MXC_DMA_SetCallback(tx_dma_channel, dma_ctz_cb);
+            MXC_DMA_EnableInt(tx_dma_channel);
         }
     }
     if(config->audio_direction / 2) {
-        spimss->dma = MXC_F_SPIMSS_REVA_DMA_RX_DMA_EN | MXC_F_SPIMSS_REVA_DMA_RX_FIFO_CLR;
+        spimss->dma |= MXC_F_SPIMSS_REVA_DMA_RX_DMA_EN | MXC_F_SPIMSS_REVA_DMA_RX_FIFO_CLR;
         if((err = MXC_DMA_Init()) != E_NO_ERROR) {
             if(err != E_BAD_STATE) {    //DMA already initialized
                 return err;
@@ -151,32 +160,36 @@ int MXC_I2S_RevA_Init(mxc_spimss_reva_regs_t *spimss, const mxc_i2s_config_t *co
             return err;
         }
 
-        dma_channel = err;
+        rx_dma_channel = err;
 
-        dma_config.ch = dma_channel;
+        dma_config.ch = rx_dma_channel;
         
-        dma_config.srcwd = MXC_DMA_WIDTH_WORD;
-        dma_config.dstwd = MXC_DMA_WIDTH_HALFWORD;
-	  #if TARGET_NUM == 32650
+        dma_config.srcwd = MXC_DMA_WIDTH_HALFWORD;
+        dma_config.dstwd = MXC_DMA_WIDTH_WORD;
+#if TARGET_NUM == 32650
         dma_config.reqsel = MXC_DMA_REQUEST_SPIMSSRX;
 	  #endif
+      #if TARGET_NUM == 32660
+        dma_config.reqsel = MXC_DMA_REQUEST_SPI1RX;
+      #endif
 
         dma_config.srcinc_en = 0;
         dma_config.dstinc_en = 1;
 
-        srcdst.ch = dma_channel;
+        srcdst.ch = rx_dma_channel;
+        srcdst.source = NULL;
         srcdst.dest = config->dst_addr;
         srcdst.len = config->length;
 
         MXC_DMA_ConfigChannel(dma_config, srcdst);
-        MXC_DMA_SetChannelInterruptEn(dma_channel, 0, 1);
+        MXC_DMA_SetChannelInterruptEn(rx_dma_channel, 0, 1);
 
-        MXC_DMA->ch[dma_channel].cfg &= ~MXC_F_DMA_CFG_BRST;
-        MXC_DMA->ch[dma_channel].cfg |= (0x1f << MXC_F_DMA_CFG_BRST_POS);
+        MXC_DMA->ch[rx_dma_channel].cfg &= ~MXC_F_DMA_CFG_BRST;
+        MXC_DMA->ch[rx_dma_channel].cfg |= (3 << MXC_F_DMA_CFG_BRST_POS);
 
         if(ctz_en) {
-            MXC_DMA_SetCallback(dma_channel, dma_ctz_cb);
-            MXC_DMA_EnableInt(dma_channel);
+            MXC_DMA_SetCallback(rx_dma_channel, dma_ctz_cb);
+            MXC_DMA_EnableInt(rx_dma_channel);
         }
     }
 
@@ -193,12 +206,33 @@ int MXC_I2S_RevA_Init(mxc_spimss_reva_regs_t *spimss, const mxc_i2s_config_t *co
 
 int MXC_I2S_RevA_Shutdown(mxc_spimss_reva_regs_t *spimss)
 {
+    int retTx = E_NO_ERROR;
+    int retRx = E_NO_ERROR;
+
     spimss->ctrl = 0;
     spimss->i2s_ctrl = 0;
     spimss->brg = 0;
     spimss->mode = 0;
     spimss->dma = 0;
-    return MXC_DMA_ReleaseChannel(dma_channel);
+
+    if(tx_dma_channel != -1)
+    {
+        retTx = MXC_DMA_ReleaseChannel(tx_dma_channel);
+    }
+
+    if(rx_dma_channel != -1)
+    {
+        retRx = MXC_DMA_ReleaseChannel(rx_dma_channel);
+    }
+
+    if(retTx != E_NO_ERROR)
+    {
+        return retTx;
+    }
+    else
+    {
+        return retRx;
+    }
 }
 
 int MXC_I2S_RevA_Mute(mxc_spimss_reva_regs_t *spimss)
@@ -227,40 +261,150 @@ int MXC_I2S_RevA_Unpause(mxc_spimss_reva_regs_t *spimss)
 
 int MXC_I2S_RevA_Stop(mxc_spimss_reva_regs_t *spimss)
 {
+    int retTx = E_NO_ERROR;
+    int retRx = E_NO_ERROR;
+
     spimss->ctrl &= ~MXC_F_SPIMSS_REVA_CTRL_ENABLE;
     spimss->i2s_ctrl &= ~MXC_F_SPIMSS_REVA_I2S_CTRL_I2S_EN;
-    return MXC_DMA_Stop(dma_channel);
+
+    if(tx_dma_channel != -1)
+    {
+        retTx = MXC_DMA_Stop(tx_dma_channel);
+    }
+    if(rx_dma_channel != -1)
+    {
+        retRx = MXC_DMA_Stop(rx_dma_channel);
+    }
+
+    if(retTx != E_NO_ERROR)
+    {
+        return retTx;
+    }
+    else
+    {
+        return retRx;
+    }
 }
 
 int MXC_I2S_RevA_Start(mxc_spimss_reva_regs_t *spimss)
 {
+    int retTx = E_NO_ERROR;
+    int retRx = E_NO_ERROR;
+
     spimss->ctrl |= MXC_F_SPIMSS_REVA_CTRL_ENABLE;
     spimss->i2s_ctrl |= MXC_F_SPIMSS_REVA_I2S_CTRL_I2S_EN;
-    return MXC_DMA_Start(dma_channel);
+
+    if(tx_dma_channel != -1)
+    {
+        retTx = MXC_DMA_Start(tx_dma_channel);
+    }
+    if(rx_dma_channel != -1)
+    {
+        retRx = MXC_DMA_Start(rx_dma_channel);
+    }
+
+    if(retTx != E_NO_ERROR)
+    {
+        return retTx;
+    }
+    else
+    {
+        return retRx;
+    }
 }
 
 int MXC_I2S_RevA_DMA_ClearFlags(void)
 {
-    int flags = MXC_DMA_ChannelGetFlags(dma_channel);
-    return MXC_DMA_ChannelClearFlags(dma_channel, flags);
+    int retTx = E_NO_ERROR;
+    int retRx = E_NO_ERROR;
+
+    int flags;
+
+    if(tx_dma_channel != -1)
+    {
+        flags = MXC_DMA_ChannelGetFlags(tx_dma_channel);
+        retTx = MXC_DMA_ChannelClearFlags(tx_dma_channel, flags);
+    }
+    if(rx_dma_channel != -1)
+    {
+        flags = MXC_DMA_ChannelGetFlags(rx_dma_channel);
+        retRx = MXC_DMA_ChannelClearFlags(rx_dma_channel, flags);
+    }
+
+    if(retTx != E_NO_ERROR)
+    {
+        return retTx;
+    }
+    else
+    {
+        return retRx;
+    }
 }
 
 int MXC_I2S_RevA_DMA_SetAddrCnt(void *src_addr, void *dst_addr, unsigned int count)
 {
+    int retTx = E_NO_ERROR;
+    int retRx = E_NO_ERROR;
+
     mxc_dma_srcdst_t srcdst;
-    srcdst.ch = dma_channel;
-    srcdst.source = src_addr;
-    srcdst.dest = dst_addr;
-    srcdst.len = count;
-    return MXC_DMA_SetSrcDst(srcdst);
+
+    if(tx_dma_channel != -1)
+    {
+        srcdst.ch = tx_dma_channel;
+        srcdst.source = src_addr;
+        srcdst.dest = dst_addr;
+        srcdst.len = count;
+        retTx = MXC_DMA_SetSrcDst(srcdst);
+    }
+    if(rx_dma_channel != -1)
+    {
+        srcdst.ch = rx_dma_channel;
+        srcdst.source = src_addr;
+        srcdst.dest = dst_addr;
+        srcdst.len = count;
+        retRx = MXC_DMA_SetSrcDst(srcdst);
+    }
+
+    if(retTx != E_NO_ERROR)
+    {
+        return retTx;
+    }
+    else
+    {
+        return retRx;
+    }
 }
 
 int MXC_I2S_RevA_DMA_SetReload(void *src_addr, void *dst_addr, unsigned int count)
 {
+    int retTx = E_NO_ERROR;
+    int retRx = E_NO_ERROR;
+
     mxc_dma_srcdst_t srcdst;
-    srcdst.ch = dma_channel;
-    srcdst.source = src_addr;
-    srcdst.dest = dst_addr;
-    srcdst.len = count;
-    return MXC_DMA_SetSrcReload(srcdst);
+
+    if(tx_dma_channel != -1)
+    {
+        srcdst.ch = tx_dma_channel;
+        srcdst.source = src_addr;
+        srcdst.dest = dst_addr;
+        srcdst.len = count;
+        retTx = MXC_DMA_SetSrcReload(srcdst);
+    }
+    if(rx_dma_channel != -1)
+    {
+        srcdst.ch = rx_dma_channel;
+        srcdst.source = src_addr;
+        srcdst.dest = dst_addr;
+        srcdst.len = count;
+        retRx = MXC_DMA_SetSrcReload(srcdst);
+    }
+
+    if(retTx != E_NO_ERROR)
+    {
+        return retTx;
+    }
+    else
+    {
+        return retRx;
+    }
 }

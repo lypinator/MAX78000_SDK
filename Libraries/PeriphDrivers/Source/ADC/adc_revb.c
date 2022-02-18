@@ -67,9 +67,9 @@ int MXC_ADC_RevB_Init (mxc_adc_revb_regs_t* adc, mxc_adc_req_t *req)
         return E_NULL_PTR;
     }
 
-   if((req->trackCount<4) || (req->idleCount<17)) {
-           return E_BAD_PARAM;
-   }
+    if(req->trackCount<4) {
+        return E_BAD_PARAM;
+    }
     //Power up to Sleep State
     adc->clkctrl |= (req->clock << MXC_F_ADC_REVB_CLKCTRL_CLKSEL) & MXC_F_ADC_REVB_CLKCTRL_CLKSEL;
 
@@ -81,7 +81,6 @@ int MXC_ADC_RevB_Init (mxc_adc_revb_regs_t* adc, mxc_adc_req_t *req)
     adc->ctrl0 |= MXC_F_ADC_REVB_CTRL0_BIAS_EN;
     MXC_Delay(500);    
 
-    //calibration
     if(req->cal == MXC_ADC_EN_CAL) {
         adc->ctrl0 &= ~MXC_F_ADC_REVB_CTRL0_SKIP_CAL;
     }
@@ -93,6 +92,9 @@ int MXC_ADC_RevB_Init (mxc_adc_revb_regs_t* adc, mxc_adc_req_t *req)
     adc->sampclkctrl |= (req->idleCount << MXC_F_ADC_REVB_SAMPCLKCTRL_IDLE_CNT_POS) & MXC_F_ADC_REVB_SAMPCLKCTRL_IDLE_CNT;
 
     adc->ctrl0 |= MXC_F_ADC_REVB_CTRL0_ADC_EN;
+
+    //Wait for 30us
+    MXC_Delay(30);
 
     //wait for calibration to complete
     while(!(adc->intfl & MXC_F_ADC_REVB_INTFL_READY));
@@ -113,8 +115,8 @@ int MXC_ADC_RevB_Shutdown (mxc_adc_revb_regs_t* adc)
     if (async_req != NULL) {
         MXC_FreeLock((uint32_t*) &async_req);
     }
-    
-    adc->ctrl0 &= ~MXC_F_ADC_REVB_CTRL0_ADC_EN;
+
+    adc->ctrl0 &= ~(MXC_F_ADC_REVB_CTRL0_ADC_EN | MXC_F_ADC_REVB_CTRL0_RESETB | MXC_F_ADC_REVB_CTRL0_BIAS_EN);
 
     return E_NO_ERROR;
 }
@@ -145,104 +147,38 @@ void MXC_ADC_RevB_ClockSelect(mxc_adc_revb_regs_t* adc, mxc_adc_clock_t clock)
     adc->clkctrl |= (clock << MXC_F_ADC_REVB_CLKCTRL_CLKSEL) & MXC_F_ADC_REVB_CLKCTRL_CLKSEL;
 }
 
-int MXC_ADC_RevB_StartConversion (mxc_adc_revb_regs_t* adc, mxc_adc_conversion_req_t *req)
+int MXC_ADC_RevB_StartConversion (mxc_adc_revb_regs_t* adc)
 {
-// TODO: This should be checked in the chip specific ADC source file
-    // if (req->channel > MXC_ADC_CH_8) {
-    //     return E_BAD_PARAM;
-    // }
+    adc->fifodmactrl |= MXC_F_ADC_REVB_FIFODMACTRL_FLUSH;                   //Flush data FIFO
 
-    //number of samples to average
-    adc->ctrl1 |= (req->avg_number << MXC_F_ADC_REVB_CTRL1_AVG_POS);
-
-    // select between software and hardware trigger
-    if(req->trig == MXC_ADC_TRIG_SOFTWARE) {
-        adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
-    }
-    else {
-        adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
-        MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_TRIG_SEL, (req->hwTrig << MXC_F_ADC_CTRL1_TRIG_SEL_POS));
-    }
-
-    // Select channel for ADC conversion
-    MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_NUM_SLOTS, 0 << MXC_F_ADC_REVB_CTRL1_NUM_SLOTS_POS);
-    MXC_SETFIELD(adc->chsel0, MXC_F_ADC_REVB_CHSEL0_SLOT0_ID, req->channel << MXC_F_ADC_REVB_CHSEL0_SLOT0_ID_POS);
-
-    // select between atomic and continuous conversion mode
-    switch(req->mode) {
-    	case MXC_ADC_ATOMIC_CONV:
-    		adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_CNV_MODE;
-            break;
-    	case MXC_ADC_CONTINUOUS_CONV:
-    	default:
-    		return E_BAD_PARAM;
-    }
-
-    MXC_ADC_ClearFlags(MXC_F_ADC_REVB_INTFL_SEQ_DONE | MXC_F_ADC_REVB_INTFL_START_DET);
+    MXC_ADC_RevB_ClearFlags(adc, ADC_IF_MASK);
 
     adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_START;
-    while((adc->intfl & MXC_F_ADC_REVB_INTFL_SEQ_DONE) == 0);
-    adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_START;
     
     return E_NO_ERROR;    
 }
 
-int MXC_ADC_RevB_StartConversionAsync (mxc_adc_revb_regs_t* adc, mxc_adc_conversion_req_t *req, mxc_adc_complete_cb_t callback)
+int MXC_ADC_RevB_StartConversionAsync (mxc_adc_revb_regs_t* adc, mxc_adc_complete_cb_t callback)
 {
-// TODO: This should be checked in the chip specific ADC source file
-    // if (req->channel > MXC_ADC_CH_8) {
-    //     return E_BAD_PARAM;
-    // }
-
     if(callback == NULL) {
         return E_BAD_PARAM;
     }
 
-    while (MXC_GetLock((uint32_t*) &async_callback, (uint32_t) callback) != E_NO_ERROR);
+    adc->fifodmactrl |= MXC_F_ADC_REVB_FIFODMACTRL_FLUSH;                   //Flush data FIFO
 
-    //number of samples to average
-    adc->ctrl1 |= (req->avg_number << MXC_F_ADC_REVB_CTRL1_AVG_POS);
-
-    // select between software and hardware trigger
-    if(req->trig == MXC_ADC_TRIG_SOFTWARE) {
-        adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
-    }
-    else {
-        adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
-        MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_TRIG_SEL, (req->hwTrig << MXC_F_ADC_CTRL1_TRIG_SEL_POS));
-    }
-
-    // Clear interrupt flags
     MXC_ADC_RevB_ClearFlags(adc, ADC_IF_MASK);
 
-    // Select channel for ADC Conversion
-    MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_NUM_SLOTS, 0 << MXC_F_ADC_REVB_CTRL1_NUM_SLOTS_POS);
-    MXC_SETFIELD(adc->chsel0, MXC_F_ADC_REVB_CHSEL0_SLOT0_ID, req->channel << MXC_F_ADC_REVB_CHSEL0_SLOT0_ID_POS);
+    while (MXC_GetLock((uint32_t*) &async_callback, (uint32_t) callback) != E_NO_ERROR);
 
-    // select between atomic and continuous conversion mode
-    switch(req->mode) {
-        case MXC_ADC_ATOMIC_CONV:
-            adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_CNV_MODE;
-            break; 
-        case MXC_ADC_CONTINUOUS_CONV:
-        default:
-            return E_BAD_PARAM;
-    }
-
-    MXC_ADC_RevB_EnableInt(adc, MXC_F_ADC_REVB_INTEN_SEQ_DONE);
+    MXC_ADC_RevB_EnableInt(adc, (MXC_F_ADC_REVB_INTEN_SEQ_DONE | MXC_F_ADC_REVB_INTEN_FIFO_LVL));
 
     adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_START;
     
     return E_NO_ERROR;  
 }
 
-int MXC_ADC_RevB_StartConversionDMA (mxc_adc_revb_regs_t* adc, mxc_adc_conversion_req_t *req, uint16_t *data, void (*callback) (int, int))
+int MXC_ADC_RevB_StartConversionDMA (mxc_adc_revb_regs_t* adc, mxc_adc_conversion_req_t *req, int *data, void (*callback) (int, int))
 {
-// TODO: This should be checked in the chip specific ADC source file
-    // if (req->channel > MXC_ADC_CH_8) {
-    //     return E_BAD_PARAM;
-    // }
-
     if(callback == NULL) {
         return E_BAD_PARAM;
     }
@@ -254,41 +190,19 @@ int MXC_ADC_RevB_StartConversionDMA (mxc_adc_revb_regs_t* adc, mxc_adc_conversio
     uint8_t channel;
     mxc_dma_config_t config;    
     mxc_dma_srcdst_t srcdst;
-
-    //number of samples to average
-    adc->ctrl1 |= (req->avg_number << MXC_F_ADC_REVB_CTRL1_AVG_POS);
-
-    // select between software and hardware trigger
-    if(req->trig == MXC_ADC_TRIG_SOFTWARE) {
-        adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
-    }
-    else {
-        adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
-        MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_TRIG_SEL, (req->hwTrig << MXC_F_ADC_REVB_CTRL1_TRIG_SEL_POS));
-    }
+    uint8_t num_bytes;
 
     // Clear interrupt flags
     MXC_ADC_RevB_ClearFlags(adc, ADC_IF_MASK);
 
-    //Set channel selection
-    MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_NUM_SLOTS, 0 << MXC_F_ADC_REVB_CTRL1_NUM_SLOTS_POS);
-    MXC_SETFIELD(adc->chsel0, MXC_F_ADC_REVB_CHSEL0_SLOT0_ID, req->channel << MXC_F_ADC_REVB_CHSEL0_SLOT0_ID_POS);
-
-    //Select conversion mode
-    switch(req->mode) {
-        case MXC_ADC_ATOMIC_CONV:
-            adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_CNV_MODE;
-            break; 
-        case MXC_ADC_CONTINUOUS_CONV:
-        default:
-            return E_BAD_PARAM;
-    }
-
     adc->fifodmactrl |= MXC_F_ADC_REVB_FIFODMACTRL_FLUSH;                   //Flush data FIFO
+
     adc->fifodmactrl |= MXC_S_ADC_REVB_FIFODMACTRL_DATA_FORMAT_DATA_STATUS; //Transfer data and status bits
-    adc->fifodmactrl |= (0 << MXC_F_ADC_REVB_FIFODMACTRL_THRESH_POS);       //Start DMA transfer when 1 ADC conversion has finished
+
     adc->fifodmactrl |= MXC_F_ADC_REVB_FIFODMACTRL_DMA_EN;                  //Enable ADC DMA
-        
+
+    num_bytes = (req->num_slots + 1) * 4;  //Support 8 slots (32 bytes) only. (TODO)
+
     channel = MXC_DMA_AcquireChannel();
     
     config.reqsel = MXC_S_DMA_CTRL_REQUEST_ADC;
@@ -303,17 +217,19 @@ int MXC_ADC_RevB_StartConversionDMA (mxc_adc_revb_regs_t* adc, mxc_adc_conversio
     srcdst.ch      = channel;
     srcdst.source  = NULL;
     srcdst.dest    = data;
-    srcdst.len     = 4;
+    srcdst.len     = num_bytes;
     
     MXC_DMA_ConfigChannel(config, srcdst);
     
     MXC_DMA_SetCallback(channel, callback);
 
-    MXC_DMA->ch[channel].ctrl |= 4 << MXC_F_DMA_CTRL_BURST_SIZE_POS;
+    //TODO: This supports 32 bytes transfer. In MXC_ADC_DATA_STATUS if all channels are used 64 bytes may need to read.
+    MXC_DMA->ch[channel].ctrl |= (num_bytes - 1) << MXC_F_DMA_CTRL_BURST_SIZE_POS;
       
     MXC_DMA_EnableInt(channel);
 
     MXC_DMA_Start(channel);
+
     MXC_DMA_SetChannelInterruptEn(channel, 0, 1);
 
     adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_START;
@@ -324,10 +240,6 @@ int MXC_ADC_RevB_StartConversionDMA (mxc_adc_revb_regs_t* adc, mxc_adc_conversio
 int MXC_ADC_RevB_Handler (mxc_adc_revb_regs_t* adc)
 {
     uint32_t flags;
-    uint16_t data;
-    int error;
-    
-    error = MXC_ADC_RevB_GetData(adc, &data);
 
     flags = MXC_ADC_RevB_GetFlags(adc);
 
@@ -336,7 +248,7 @@ int MXC_ADC_RevB_Handler (mxc_adc_revb_regs_t* adc)
 
         if (flags & MXC_F_ADC_REVB_INTEN_SEQ_DONE) {
             MXC_ADC_RevB_ClearFlags(adc, flags);
-            MXC_ADC_RevB_DisableInt(adc, (MXC_F_ADC_REVB_INTFL_SEQ_DONE | MXC_F_ADC_REVB_INTFL_CONV_DONE));
+            MXC_ADC_RevB_DisableInt(adc, (MXC_F_ADC_REVB_INTFL_SEQ_DONE | MXC_F_ADC_REVB_INTFL_CONV_DONE | MXC_F_ADC_REVB_INTEN_FIFO_LVL));
             MXC_FreeLock((uint32_t*) &async_callback);
         }
         
@@ -344,27 +256,130 @@ int MXC_ADC_RevB_Handler (mxc_adc_revb_regs_t* adc)
             MXC_ADC_RevB_ClearFlags(adc, MXC_F_ADC_REVB_INTFL_CONV_DONE);
         }  
 
-        if(error != E_NO_ERROR) {
-            (cb)(NULL, error);
-        }
-        else {
-            (cb)(NULL, data);
+        if(flags) {
+            (cb)(NULL, flags);
         }
     }
 
     return E_NO_ERROR;  
 }
 
-// ************************************* Function to Read ADC Data *******************************************
-int MXC_ADC_RevB_GetData (mxc_adc_revb_regs_t* adc, uint16_t *outdata)
+int MXC_ADC_RevB_GetData (mxc_adc_revb_regs_t* adc, int *outdata)
 {
-	uint32_t dataReg = adc->data;
+	uint32_t loop_counter, length;
 
-    if(dataReg & MXC_F_ADC_REVB_DATA_INVALID) {
-        return E_INVALID;
+	length = adc->status & MXC_F_ADC_REVB_STATUS_FIFO_LEVEL;
+	length = length >> MXC_F_ADC_REVB_STATUS_FIFO_LEVEL_POS;
+
+	for ( loop_counter = 0; loop_counter < length ; loop_counter++) {
+		  *outdata = adc->data;
+	      outdata++;
+	}
+    return length;
+}
+
+void MXC_ADC_RevB_EnableConversion (mxc_adc_revb_regs_t* adc)
+{
+    adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_START;
+}
+
+void MXC_ADC_RevB_DisableConversion (mxc_adc_revb_regs_t* adc)
+{
+    adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_START;
+}
+
+void MXC_ADC_RevB_TS_SelectEnable (mxc_adc_revb_regs_t* adc)
+{
+    adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_TS_SEL;
+}
+
+void MXC_ADC_RevB_TS_SelectDisable (mxc_adc_revb_regs_t* adc)
+{
+    adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_TS_SEL;
+}
+
+uint16_t MXC_ADC_RevB_FIFO_Level (mxc_adc_revb_regs_t* adc)
+{
+    return ((adc->status & MXC_F_ADC_REVB_STATUS_FIFO_LEVEL ) >> MXC_F_ADC_REVB_STATUS_FIFO_LEVEL_POS);
+}
+
+int MXC_ADC_RevB_FIFO_Threshold_Config (mxc_adc_revb_regs_t* adc, uint32_t fifo_threshold)
+{
+    if( fifo_threshold > MAX_ADC_FIFO_LEN ) {
+    	 return E_BAD_PARAM;
     }
 
-    *outdata = (dataReg & MXC_F_ADC_REVB_DATA_DATA);
+    adc->fifodmactrl &= ~MXC_F_ADC_REVB_FIFODMACTRL_THRESH;
+    adc->fifodmactrl |= (uint32_t)(fifo_threshold<<MXC_F_ADC_REVB_FIFODMACTRL_THRESH_POS);
 
     return E_NO_ERROR;
 }
+
+int MXC_ADC_RevB_AverageConfig (mxc_adc_revb_regs_t* adc, mxc_adc_avg_t avg_number)
+{
+    //number of samples to average
+    adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_AVG;
+    adc->ctrl1 |= (avg_number);
+
+    return E_NO_ERROR;
+}
+
+void MXC_ADC_RevB_Clear_ChannelSelect (mxc_adc_revb_regs_t* adc)
+{
+    //Clear channel select registers
+    adc->chsel0 = 0;
+    adc->chsel1 = 0;
+    adc->chsel2 = 0;
+    adc->chsel3 = 0;
+
+#if TARGET_NUM == 32690
+    adc->chsel4 = 0;
+#endif
+}
+
+void MXC_ADC_RevB_TriggerConfig (mxc_adc_revb_regs_t* adc, mxc_adc_conversion_req_t *req)
+{
+    if(req->trig == MXC_ADC_TRIG_SOFTWARE) {
+        adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
+    }
+    else {
+        adc->ctrl1 |= MXC_F_ADC_REVB_CTRL1_TRIG_MODE;
+        MXC_SETFIELD(adc->ctrl1, MXC_F_ADC_REVB_CTRL1_TRIG_SEL, (req->hwTrig << MXC_F_ADC_REVB_CTRL1_TRIG_SEL_POS));
+    }
+}
+
+int MXC_ADC_RevB_SlotsConfig (mxc_adc_revb_regs_t* adc, mxc_adc_conversion_req_t *req)
+{
+    if( req->num_slots >= MAX_ADC_SLOT_NUM ) {
+    	 return E_BAD_PARAM;
+    }
+
+    adc->ctrl1 &= ~MXC_F_ADC_REVB_CTRL1_NUM_SLOTS;
+    adc->ctrl1 |= (uint32_t)(req->num_slots) << MXC_F_ADC_REVB_CTRL1_NUM_SLOTS_POS;
+
+    return E_NO_ERROR;
+}
+
+
+//TODO: Need to find out better way to handle this.
+#define MXC_ADC_CHSEL0                   ((uint32_t)0x00000010UL) /**< Offset from ADC Base Address: <tt> 0x0010</tt> */
+int MXC_ADC_RevB_ChSelectConfig (mxc_adc_revb_regs_t* adc, mxc_adc_chsel_t ch, uint32_t slot_num)
+{
+    uint32_t* pointer = (uint32_t*) (MXC_BASE_ADC + MXC_ADC_CHSEL0);
+    uint32_t offset;
+    uint32_t bitposition;
+
+    if( slot_num >= MAX_ADC_SLOT_NUM ) {
+    	 return E_BAD_PARAM;
+    }
+
+    offset = slot_num>>2;
+
+    bitposition = ch<<( (slot_num & 0x03) << 3);
+
+    *(pointer + offset) |= bitposition;
+
+    return E_NO_ERROR;
+}
+
+//End

@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"group__spi.html#gga60b8dae244994cc57471750e249bc09ca7c1990cc15e9d69621be8e0e757e634c":[0,19,4,1],
 "group__spi.html#gga60b8dae244994cc57471750e249bc09caf06ec36087996d6f328df39866ff5de6":[0,19,4,3],
 "group__spi.html#gga7a218a6e76f22dccdd5680b1eca14409a69486e065cec07c46e922a149a65bb49":[0,19,5,3],
 "group__spi.html#gga7a218a6e76f22dccdd5680b1eca14409af55a2ccb187d2d7b4ba3015ca0a34271":[0,19,5,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "group__wdt.html#gga402e160fed5337127134084c4042c598ac6b087437fd7e3df89050a9b3454b3bc":[0,23,4,11],
 "group__wdt.html#gga402e160fed5337127134084c4042c598ae0e4d85b5fe62072c8d79a391b84f75c":[0,23,4,0],
 "group__wdt.html#gga402e160fed5337127134084c4042c598aea056296570c7bcd7561d5c53a955cb1":[0,23,4,4],
-"group__wdt.html#structmxc__wdt__cfg__t":[0,23,1],
-"group__wdt__registers.html":[0,23,0]
+"group__wdt.html#structmxc__wdt__cfg__t":[0,23,1]
 };

@@ -2733,6 +2733,7 @@ var searchData=
   ['mxc_5frtc_5ff_5f4khz',['MXC_RTC_F_4KHZ',['../group__rtc.html#gga5c85a643a530f9c5252170d930e36ab3ac9960183dfcceb6b145ff84deeb63387',1,'rtc.h']]],
   ['mxc_5frtc_5ff_5f512hz',['MXC_RTC_F_512HZ',['../group__rtc.html#gga5c85a643a530f9c5252170d930e36ab3acc829bc79f7a7de80d666baf8a949417',1,'rtc.h']]],
   ['mxc_5frtc_5ffreq_5fsel_5ft',['mxc_rtc_freq_sel_t',['../group__rtc.html#ga5c85a643a530f9c5252170d930e36ab3',1,'rtc.h']]],
+  ['mxc_5frtc_5fgetbusyflag',['MXC_RTC_GetBusyFlag',['../group__rtc.html#ga208d3d95aac1f0ffe30d27759a1c4657',1,'rtc.h']]],
   ['mxc_5frtc_5fgetflags',['MXC_RTC_GetFlags',['../group__rtc.html#gaac49ef33445a01ca2c647d3a776e6edc',1,'rtc.h']]],
   ['mxc_5frtc_5fgetsecond',['MXC_RTC_GetSecond',['../group__rtc.html#ga3e2aa5c188abff60e6ead9726ef272cf',1,'rtc.h']]],
   ['mxc_5frtc_5fgetsubsecond',['MXC_RTC_GetSubSecond',['../group__rtc.html#gaa0c3ee434b206af0469de43ba32133f1',1,'rtc.h']]],

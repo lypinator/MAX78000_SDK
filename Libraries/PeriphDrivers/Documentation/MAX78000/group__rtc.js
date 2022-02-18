@@ -20,6 +20,7 @@ var group__rtc =
     [ "MXC_RTC_ClearFlags", "group__rtc.html#gaa9beed7f411d0ba98290cbe6de19fc44", null ],
     [ "MXC_RTC_DisableInt", "group__rtc.html#ga364c277e969346d95ae6a74123356828", null ],
     [ "MXC_RTC_EnableInt", "group__rtc.html#ga1aff2da831f7b023ca34f7b724bfa0ea", null ],
+    [ "MXC_RTC_GetBusyFlag", "group__rtc.html#ga208d3d95aac1f0ffe30d27759a1c4657", null ],
     [ "MXC_RTC_GetFlags", "group__rtc.html#gaac49ef33445a01ca2c647d3a776e6edc", null ],
     [ "MXC_RTC_GetSecond", "group__rtc.html#ga3e2aa5c188abff60e6ead9726ef272cf", null ],
     [ "MXC_RTC_GetSubSecond", "group__rtc.html#gaa0c3ee434b206af0469de43ba32133f1", null ],

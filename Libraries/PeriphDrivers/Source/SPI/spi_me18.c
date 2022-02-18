@@ -187,7 +187,7 @@ int MXC_SPI_Shutdown(mxc_spi_regs_t* spi)
     else if (spi == MXC_SPI2) {
         MXC_SYS_ClockDisable(MXC_SYS_PERIPH_CLOCK_SPI2);
     }
-  #ifndef __risv
+  #ifndef __riscv
     else if (spi == MXC_SPI3) {
         MXC_SYS_ClockDisable(MXC_SYS_PERIPH_CLOCK_SPI3);
     }

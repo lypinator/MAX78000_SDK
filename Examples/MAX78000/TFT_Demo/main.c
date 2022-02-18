@@ -51,10 +51,10 @@
 #include "utils.h"
 #include "state.h"
 #ifdef BOARD_FTHR_REVA
-#include "tft_fthr.h"
+#include "tft_ili9341.h"
 #endif
 #ifdef BOARD_EVKIT_V1
-#include "tft.h"
+#include "tft_ssd2119.h"
 #include "bitmap.h"
 #endif
 #include "keypad.h"
