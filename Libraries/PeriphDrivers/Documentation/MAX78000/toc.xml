@@ -2510,6 +2510,7 @@
       <topic label="MXC_RTC_ClearFlags" href="group__rtc.html#gaa9beed7f411d0ba98290cbe6de19fc44"/>
       <topic label="MXC_RTC_DisableInt" href="group__rtc.html#ga364c277e969346d95ae6a74123356828"/>
       <topic label="MXC_RTC_EnableInt" href="group__rtc.html#ga1aff2da831f7b023ca34f7b724bfa0ea"/>
+      <topic label="MXC_RTC_GetBusyFlag" href="group__rtc.html#ga208d3d95aac1f0ffe30d27759a1c4657"/>
       <topic label="MXC_RTC_GetFlags" href="group__rtc.html#gaac49ef33445a01ca2c647d3a776e6edc"/>
       <topic label="MXC_RTC_GetSecond" href="group__rtc.html#ga3e2aa5c188abff60e6ead9726ef272cf"/>
       <topic label="MXC_RTC_GetSubSecond" href="group__rtc.html#gaa0c3ee434b206af0469de43ba32133f1"/>

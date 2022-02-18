@@ -256,6 +256,34 @@ void MXC_LP_DisableLPCMPWakeup (mxc_lpcmp_cmpsel_t cmp)
     }
 }
 
+void MXC_LP_EnableCANWakeup(uint32_t can_idx)
+{
+    MXC_ASSERT(can_idx < MXC_CAN_INSTANCES);
+
+    switch(can_idx) {
+        case 0:
+            MXC_PWRSEQ->lppwen |= MXC_F_PWRSEQ_LPPWEN_CAN0;
+            break;
+        case 1:
+            MXC_PWRSEQ->lppwen |= MXC_F_PWRSEQ_LPPWEN_CAN1;
+            break;
+    } 
+}
+
+void MXC_LP_DisableCANWakeup(uint32_t can_idx)
+{
+    MXC_ASSERT(can_idx < MXC_CAN_INSTANCES);
+
+    switch(can_idx) {
+        case 0:
+            MXC_PWRSEQ->lppwen &= ~MXC_F_PWRSEQ_LPPWEN_CAN0;
+            break;
+        case 1:
+            MXC_PWRSEQ->lppwen &= ~MXC_F_PWRSEQ_LPPWEN_CAN1;
+            break;
+    }
+}
+
 int MXC_LP_ConfigDeepSleepClocks(uint32_t mask)
 {
     if (!(mask & (MXC_F_GCR_PM_IBRO_PD | MXC_F_GCR_PM_IPO_PD))) {

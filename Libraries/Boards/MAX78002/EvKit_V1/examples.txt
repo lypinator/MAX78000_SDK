@@ -3,6 +3,7 @@ AES
 CameraIF
 CNN/camvid_unet
 CNN/cats-dogs
+CNN/cats-dogs_demo
 CNN/cifar-10
 CNN/cifar-100
 CNN/cifar-100-mixed
@@ -17,6 +18,7 @@ CRC
 DMA
 ECC
 Flash
+FreeRTOSDemo
 GPIO
 Hello_World
 I2C

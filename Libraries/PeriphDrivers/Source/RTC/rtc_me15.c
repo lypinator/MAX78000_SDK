@@ -92,6 +92,26 @@ int MXC_RTC_SquareWave (mxc_rtc_reva_sqwave_en_t sqe, mxc_rtc_freq_sel_t ft)
   #endif
 }
 
+int MXC_RTC_SquareWaveStart (mxc_rtc_freq_sel_t fq)
+{
+  #if TARGET_NUM != 32675
+    MXC_GPIO_Config(&gpio_cfg_rtcsqw);
+    return MXC_RTC_RevA_SquareWave((mxc_rtc_reva_regs_t*) MXC_RTC, MXC_RTC_REVA_SQUARE_WAVE_ENABLED, fq);
+  #else 
+    return E_NOT_SUPPORTED;
+  #endif
+}
+
+int MXC_RTC_SquareWaveStop (void)
+{
+  #if TARGET_NUM != 32675    
+	return MXC_RTC_RevA_SquareWave((mxc_rtc_reva_regs_t*) MXC_RTC, MXC_RTC_REVA_SQUARE_WAVE_DISABLED, 0);
+  #else 
+    return E_NOT_SUPPORTED;
+  #endif
+}
+
+
 int MXC_RTC_Trim(int8_t trm)
 {
     return MXC_RTC_RevA_Trim ((mxc_rtc_reva_regs_t*) MXC_RTC, trm);
@@ -120,4 +140,9 @@ int MXC_RTC_GetSecond(void)
 int MXC_RTC_GetTime(uint32_t* sec, uint32_t* subsec)
 {
     return MXC_RTC_RevA_GetTime(sec, subsec);
+}
+
+int MXC_RTC_GetBusyFlag(void)
+{
+    return MXC_RTC_RevA_GetBusyFlag();
 }

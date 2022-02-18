@@ -4,6 +4,16 @@ Refer to [Getting Started with the MAX78000 Evaluation Kit](https://github.com/M
 
 ## Release Notes
 
+February 15, 2022
+* Moved common board support files to /Libraries/MiscDrivers folder.
+* Added FreeRTOS examples for the MAX78000 and MAX78002.
+* Added cats-dogs_demo for the MAX78002.
+* Fixed bit position for OWM presence detect bit.
+* Exposed function to read RTC busy flag.
+* Exposed function to read intermediate RX and TX count for UART 
+  asynchronous transactions.
+* Added support for bi-directional I2S.
+
 December 10, 2021
 * Improved RGB565 support for TFT driver.
 * Fixed baud rate calculations for UART0 through UART2.

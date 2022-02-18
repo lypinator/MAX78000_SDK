@@ -24,10 +24,10 @@ CameraIF
 DMA
 ECC
 Flash
+FreeRTOSDemo
 GPIO
 Hello_World
 I2C
-I2C_ADXL343
 I2S
 I2S_DMA
 ICC
