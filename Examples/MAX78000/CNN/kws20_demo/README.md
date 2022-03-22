@@ -1,373 +1,345 @@
-# MAX78000 Keyword Spotting Demo v.3
+# VSCode-Maxim
+https://github.com/MaximIntegratedTechSupport/VSCode-Maxim
 
+If you are viewing this document from within Visual Studio Code, press `CTRL+SHIFT+V` to open a Markdown preview window.
 
+# Introduction
+This repository is dedicated to maintaining [Visual Studio Code](https://code.visualstudio.com/) project files that integrate with [Maxim Integrated's](https://www.maximintegrated.com/en/products/microcontrollers.html) Microcontroller SDK.  The following features are enabled by the project files:
+* Code editing with intellisense and definition look-ups down to the register level
+* Code compilation with the ability to easily re-target a project for different microcontrollers and boards
+* Flashing program binaries
+* GUI and command-line debugging
 
-## Overview
+# Dependencies
+The project folders in this repo have the following dependencies:
+* [Visual Studio Code](https://code.visualstudio.com/)
+* [C/C++ VSCode Extension](https://github.com/microsoft/vscode-cpptools)
+* [Maxim Micros SDK](https://www.maximintegrated.com/content/maximintegrated/en/design/software-description.html/swpart=SFW0010820A)
 
-The Keyword Spotting Demo software demonstrates recognition of a number of keywords using MAX78000 EVKIT.  
+# Installation
+## Windows 10
+1. Download & install the Maxim Microcontrollers SDK via the [Windows Installer](https://www.maximintegrated.com/content/maximintegrated/en/design/software-description.html/swpart=SFW0010820A).  See [AN7219](https://www.maximintegrated.com/en/design/technical-documents/userguides-and-manuals/7/7219.html) for a detailed installation guide if needed.  (If the SDK is already installed, run the "MaintenanceTool.exe" to update it to the latest version)
 
-The KWS20 demo software utilizes 2nd version of Google speech commands dataset which consists of 35 keywords and more than 100K utterances:
+    **Ensure all components are selected!**
 
-https://storage.cloud.google.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz
+    ![All components selected](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/installer_components.JPG)
 
+2. Set the `MAXIM_PATH` environment variable to the installation location of the SDK.  If you are unsure how to set an environment variable, see [this](https://www.onmsft.com/how-to/how-to-set-an-environment-variable-in-windows-10) article.  Ex:
 
+    ![Variable Name = MAXIM_PATH, Variable Value = C:/MaximSDK](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/maxim_path_env.JPG)
 
-The following 20 keyword subset from the complete dataset is used for this demo:
+3. Download the latest Windows 10 release of this project from the [Releases](https://github.com/MaximIntegratedTechSupport/VSCode-Maxim/releases) page and extract to an accessible location.
 
- ['**up', 'down', 'left', 'right', 'stop', 'go', 'yes', 'no', 'on', 'off', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero**']
+4. Copy the files from the `MaximSDK` folder into the root directory of your MaximSDK installation and overwrite.  This will populate the example projects with VS Code project folders and make any necessary patches to the SDK.
 
-Rest of keywords and unrecognized words fall into "**Unknown**" category.
+    ![Drag and Drop Installation](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/drag_and_drop_install.jpg)
 
+5. Download & install [Visual Studio Code](https://code.visualstudio.com/).
 
+6. Install official Microsoft [C/C++ VSCode Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools).
 
-## Keyword Spotting Demo Software
+7. (Recommended) Disable VS Code auto updates in `File -> Preferences -> Settings` by setting `update.mode` to manual and `extensions.autoUpdate` to None.  VS Code updates on a monthly basis, and sometimes an auto-update can break the project files.  Additionally, feature changes on the vscode-cpptools extension may cause instability.  Tested version #s can be found on each Release page.
 
-### Building firmware:
+8. That's it!  You're ready to start using Visual Studio Code to develop with Maxim's Microcontrollers.  See Usage below.
 
-Navigate directory where KWS20 demo software is located and build the project:
+## Linux
+### Ubuntu
+1. Download & install the Maxim Microcontrollers SDK via the [Linux Installer](https://www.maximintegrated.com/content/maximintegrated/en/design/software-description.html/swpart=SFW0018720A).  See [AN7219](https://www.maximintegrated.com/en/design/technical-documents/userguides-and-manuals/7/7219.html) for a detailed installation guide if needed.  (If the SDK is already installed, run the "MaintenanceTool" to update it to the latest version)
 
-```bash
-$ cd /Examples/MAX78000/CNN/kws20_demo
-$ make
-```
+    **Ensure all components are selected!**
 
-If this is the first time after installing tools, or peripheral files have been updated, first clean drivers before rebuilding the project: 
+    ![All components selected](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/installer_components.JPG)
 
-```bash
-$ make distclean
-```
+2. Add MAXIM_PATH to your system environment variables.
+    1. Create a new file `/etc/profile.d/maximsdk-env.sh` with the contents `export MAXIM_PATH=[MaximSDK installation location]`.  
+    
+        For example...
 
-To compile code for MAX78000 EVKIT enable **BOARD=EvKit_V1** in Makefile:
+        ```bash
+        # in /etc/profile.d/maximsdk-env.sh ...
+        export MAXIM_PATH=/home/yourusername/MaximSDK
+        ```
 
-```bash
-# Specify the board used
-ifeq "$(BOARD)" ""
-BOARD=EvKit_V1
-#BOARD=FTHR_RevA
-endif
-```
+        ... and save the file.
 
-To compile code for MAX78000 Feather board enable **BOARD=FTHR_RevA** in Makefile:
+    2. Reboot your system to refresh environment variables system-wide.
 
-```bash
-# Specify the board used
-ifeq "$(BOARD)" ""
-#BOARD=EvKit_V1
-BOARD=FTHR_RevA
-endif
-```
+3. Download the latest Linux release of this project from the [Releases](https://github.com/MaximIntegratedTechSupport/VSCode-Maxim/releases) page and extract to an accessible location.
 
-**Note: If you are using Eclipse, please also make sure to change the value of Board environment variable to "FTHR_RevA by:**
+4. Copy the `60-openocd.rules` file from the VSCode-Maxim release into `/etc/udev/rules.d/` and refresh udev rules.  The following terminal commands can be used from within the VSCode-Maxim release folder...
 
-*right click project name > Properties > C/C++ Build > Environment > Board"*
+    ```bash
+    cp 60-openocd.rules /etc/udev/rules.d/
+    udevadm control --reload 
+    ```
 
-<img src="Resources/eclipse_board.png" style="zoom:33%;" />
+5. Copy the files from the `MaximSDK` folder into the root directory of your MaximSDK installation and overwrite.  This will populate the example projects with VS Code project folders and make any necessary patches to the SDK.
 
+    ![Drag and Drop Installation](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/drag_and_drop_install.jpg)
+    (Note:  The image above shows a Windows file explorer...  The principal is the same on any OS)
 
+6. Download & install [Visual Studio Code](https://code.visualstudio.com/).
 
-### Load firmware image to MAX78000 EVKIT
+7. Install official Microsoft [C/C++ VSCode Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools).
 
-Connect USB cable to CN1 (USB/PWR) and turn ON power switch (SW1).
+8. (Recommended) Disable VS Code auto updates in `File -> Preferences -> Settings` by setting `update.mode` to manual and `extensions.autoUpdate` to None.  VS Code updates on a monthly basis, and sometimes an auto-update can break the project files.  Additionally, feature changes on the vscode-cpptools extension may cause instability.  Tested version #s can be found on each Release page.
 
-Connect PICO adapter to JH5 SWD header.
+9. That's it!  You're ready to start using Visual Studio Code to develop with Maxim's Microcontrollers.  See Usage below.
 
-If you are using Windows, load the firmware image with OpenOCD in a MinGW shell:
+# Usage
+## Introduction
+This section covers basic usage of the VSCode-Maxim project files.  For documentation on Visual Studio Code itself, please refer to the official docs [here](https://code.visualstudio.com/Docs).  
 
-```bash
-openocd -s $MAXIM_PATH/Tools/OpenOCD/scripts -f interface/cmsis-dap.cfg -f target/max78000.cfg -c "program build/MAX78000.elf reset exit"
-```
+Prior experience with Visual Studio Code is not required to understand this section or use the project files, but some basic familiarity is helpful.  For new users, this initial familiarity can be gained by working through the full [User Guide](https://github.com/MaximIntegratedTechSupport/VSCode-Maxim/blob/main/userguide.md).
 
-If using Linux, perform this step:
+## Opening Projects
+Visual Studio Code is built around a "working directory" paradigm.  VS Code's editor is always running from inside of a working directory, and the main mechanism for changing that directory is `File -> Open Folder...`  
 
-```bash
-./openocd -f tcl/interface/cmsis-dap.cfg -f tcl/target/max78000.cfg -c "program build/MAX78000.elf verify reset exit"
-```
+![File -> Open Folder](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/file_openfolder.JPG)
 
-**Make sure to remove PICO adapter once firmware is loaded.**
+VS Code will look in the opened folder for a `.vscode` _sub_-folder to load project-specific settings from.
 
-### MAX78000 EVKIT jumper setting
+Opening an existing project is as simple as `File -> Open Folder...`.  A project that is configured for VS Code will have, at minimum, a .vscode sub-folder and a Makefile in its directory.  Ex:
 
-Make sure to install jumper at JP20-CLK (INT position) as shown bellow:
+![Example Directory Contents](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/opening_projects_2.jpg)
 
-<img src="Resources/I2S_jumper.png" style="zoom:25%;" />
+Note:  You may need to enable viewing of hidden items in your file explorer to see the .vscode sub-folder.
 
-Note: On board external oscillator Y3 is used to generate I2S clock. The I2S sample rate is 16kHz to match speech samples of the dataset.
+## Build Tasks
+Once a project is opened 4 available build tasks will become available via `Terminal > Run Build task...` or the shortcut `Ctrl+Shift+B`.  These tasks are configured by the `.vscode/task.json` file.
 
-### MAX78000 EVKIT operations
+![Build Tasks Image](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/buildtasks.JPG)
 
-After power-cycle,  if the TFT display is blank, or not shown properly as below, please press RESET (SW5).
+* Build
+    * Compiles the code.
+    * The `./build` directory will be created and will contain the output binary, as well as all intermediary object files.
 
-The TFT display shows that it is ready. Press PB1 to start:
+* Clean
+    * This task cleans the build output, removing the `./build` directory and all of its contents.
+    
+* Clean-Periph
+    * This task is the same as 'clean', but it also removes the build output for Maxim's peripheral drivers.
+    * Use this if you would like to recompile the peripheral drivers from source on the next build.
 
-<img src="Resources/20200604_142849.jpg" style="zoom: 25%;" />
+* Flash
+    * This task runs the Build task, and then flashes the output binary to the microcontroller.
+    * A debugger must be connected to the correct debugger port on the target microcontroller.  Refer to the datasheet of your microcontrollers evaluation board for instructions on connecting a debugger.
 
+## Editing the Makefile
+At the heart of every project is its `Makefile`.  Build Tasks are essentially a wrapper around the Makefile.  Adding source code files to the build, setting compiler flags, linking libraries, etc. must be done by directly editing this file.
 
+The usage guidelines below are specific to Maxim's Makefiles.  The [GNU Make Manual](https://www.gnu.org/software/make/manual/html_node/index.html) is a good one to have on hand for documentation regarding Makefiles in general.
 
-Once RED LED2 turns on, the initialization is complete and it is ready to accept keywords. If PICO adapter is still connected to SWD, disconnect it and power cycle.
+### Adding Source Code Files
+* VS Code's editor can create and add new files to a project, but they won't be added to the build automatically.  The Makefile must be told which source code files to build, and where to find them.
+* Add a source file to the build with `SRCS += yourfile.c`
+* The Makefile looks for project source files in the `/src` directory by default.  Add additional directories to search with `VPATH += yoursourcedirectory`
+* The Makefile looks for project header files in the `/src` directory by default.  Add additional directories to search with `IPATH += yourincludedirectory`
 
-Following words can be detected:
+### Compiler Flags
+* Compiler flags can be added/changed via the `PROJ_CFLAGS` variable.
+* Add a new flag to be passed to the compiler with `PROJ_CFLAGS += -yourflag`.  Flags are passed in the order that they are added to the `PROJ_CFLAGS` variable.
 
- ['**up', 'down', 'left', 'right', 'stop', 'go', 'yes', 'no', 'on', 'off', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero**']
+### Linking Libraries
+* Additional libraries can be linked via the `PROJ_LIBS` variable.  Add a new library to the build with `PROJ_LIBS += yourlibraryname`.
+    * Note : Do not include the 'lib' part of the library name, or the file extension.  For example, to link `libarm_cortexM4lf_math.a` set `PROJ_LIBS += arm_cortexM4lf_math`.
+* Tell the linker where to find the library with the '-L' linker flag.  Set `PROJ_LDFLAGS += -Lpathtoyourlibrary`.  For example, set `PROJ_LDFLAGS += -L./lib` to search a 'lib' directory inside of the project for libraries. 
 
- The MAX78000 KWS20 demo firmware recognizes keywords and reports result and confidence level.
+### Optimization Level
+* The optimization level that the compiler uses can be set by changing the `MXC_OPTIMIZE_CFLAGS` variable.  
+* See [GCC Optimization Options](https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html) for more details on available optimization levels.  For example, disable optimization with `MXC_OPTIMIZE_CFLAGS = -O0`
 
-The microphone (U15) is located between JH4 and JH5 headers on EVKIT, (MK1) between J5 and J7 audio connectors on MAX78000 Feather board.
+## Debugging
+Debugging is enabled by Visual Studio Code's integrated debugger.  Launch configurations are provided by the `.vscode/launch.json` file.
 
+![Debug Window](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/debugger.JPG)
 
+### Launching the Debugger
+1. Ensure that a debugger is attached to the target microcontroller on the correct port.  (Refer to the datasheet of your evaluation board for instructions on connecting a debugger)
 
-<img src="Resources/20200604_142536_1.jpg" style="zoom:25%;" />
+2. Flash the program to the microcontroller with the "Flash" Build Task (CTRL+SHIFT+B).  Flashing does not happen automatically when launching the debugger.
 
+3. Launch the debugger with `Run > Start Debugging`, with the shortcut `F5`, or via the `Run and Debug` window (Ctrl + Shift + D) and the green "launch" arrow.
 
+    ![Debug Tab](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/debugger_window.JPG)
 
-### Load firmware image to MAX78000 Feather
+4. The debugger will launch a GDB client & OpenOCD server, reset the microcontroller, and should break on entry into `main`.
 
-Connect USB cable to CN1 USB connector.
+    ![Debugger Break on Main](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/debugger_breakmain.JPG)
 
-If you are using Windows, load the firmware image with OpenOCD in a MinGW shell:
+### Using the Debugger
+The main interface for the debugger is the debugger control bar.
 
-```bash
-openocd -s $MAXIM_PATH/Tools/OpenOCD/scripts -f interface/cmsis-dap.cfg -f target/max78000.cfg -c "program build/MAX78000.elf reset exit"
-```
+![Debugger Control Bar Image](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/debugger_bar.JPG)
 
-If using Linux, perform this step:
+Continue | Step Over | Step Into | Step Out | Restart | Stop
 
-```bash
-./openocd -f tcl/interface/cmsis-dap.cfg -f tcl/target/max78000.cfg -c "program build/MAX78000.elf verify reset exit"
-```
+Breakpoints can be set by clicking in the space next to the line number in a source code file.  A red dot indicates a line to break on.  Breakpoints can be removed by clicking on them again.  Ex:
 
-### MAX78000 Feather operations
+![Breakpoint](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/breakpoint.JPG)
 
-The KWS20 demo starts automatically after power-up or pressing reset button (SW4).
-The TFT display is optional and not supplied with the MAX78000 Feather board.
-User should use PC terminal program to observe KWS20 demo result as described in "Using Debug Terminal" section.
+For full usage details, please refer to the [official VS Code debugger documentation](https://code.visualstudio.com/docs/editor/debugging).  Documentation related to launch configurations can be ignored, as that's what's provided by this project.
 
-The MAX78000 Feather compatible 2.4'' TFT FeatherWing display can be ordered here:
+# Configuration
+## Project Settings
+`.vscode/settings.json` is the main project configuration file.  Values set here are parsed into the other .json config files.  When a change is made to this file, VS Code should be restarted (or alternatively reloaded with CTRL+SHIFT+P -> Reload Window) to force a re-parse.  
 
-https://learn.adafruit.com/adafruit-2-4-tft-touch-screen-featherwing
+The default project configuration should work for most use cases as long as `"target"` and `"board"` are set correctly.
 
-This TFT display comes fully assembled with dual sockets for MAX78000 Feather to plug into.
+Any field from `settings.json` can be referenced from any other config file (including itself) with `"${config:[fieldname]}"`
 
-To compile code with enabled TFT feature use following setting in Makefile:
+The following configuration options are available:
+## Basic Config Options
+* `"target"`
+    * This sets the target microcontroller for the project.
+    * Supported values:
+        * `"MAX32520"`
+        * `"MAX32570"`
+        * `"MAX32650"`
+        * `"MAX32655"`
+        * `"MAX32660"`
+        * `"MAX32665"` (for MAX32665-MAX32668)
+        * `"MAX32670"`
+        * `"MAX32672"`
+        * `"MAX32675"`
+        * `"MAX78000"`
+    
+* `"board"`
+    * This sets the target board for the project (ie. Evaluation Kit, Feather board, etc.)
+    * Supported values: 
+        * ... can be found in the `Libraries/Boards` folder of the MaximSDK
+    * For example, the supported options for the MAX78000 are `"EvKit_V1"`, `"FTHR_RevA"`, and `"MAXREFDES178"`.
+![MAX78000 Boards](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/78000_boards.JPG)
 
-```bash
-ifeq "$(BOARD)" "FTHR_RevA"
-PROJ_CFLAGS += -DENABLE_TFT
-endif
-```
+## Advanced Config Options
+* `"terminal.integrated.env.[platform]:Path"`
+    * This prepends the location of toolchain binaries to the system `Path` used by VSCode's integrated terminal.  Don't touch unless you know what you're doing :)
 
-While using TFT display keep its power switch in "ON" position. The TFT "Reset" button also can be used as Feather reset.
-Press PB1 (SW1) button to start demo.
+* `"MAXIM_PATH"`
+    * This option must point to the root installation directory of the MaximSDK.  By default, the MAXIM_PATH environment variable is used, which is suitable for most use cases.  
+    * Default value: `"${env:MAXIM_PATH}"`
 
-![](Resources/feather_tft.jpg)
+* `"project_name"`
+    * Sets the name of project.  This is used in other config options such as `program_file`.
+    * Default value: `"${workspaceFolderBasename}"`
 
-The PB1 (SW1) button is located as shown in picture bellow:
+* `"program_file"`
+    * Sets the name of the file to flash and debug.  This is provided in case it's needed, but for most use cases should be left at its default.  
+    * File extension must be included.
+    * Default value: `"${config:project_name}.elf"`
 
-![](Resources/pb1_button.jpg)
+* `"symbol_file"`
+    * Sets the name of the file that GDB will load debug symbols from.
+    * File extension must be included.
+    * Default value: `"${config:program_file}"`
 
+* `"M4_OCD_interface_file"`
+    * Sets the OpenOCD interface file to use to connect to the Arm M4 core.  This should match the debugger being used for the M4 core.
+    * `.cfg` file extension must be included.
+    * Default value: `"cmsis-dap.cfg"`
 
+* `"M4_OCD_target_file"`
+    * Sets the OpenOCD target file to use for the Arm M4 core.  This should match the target microcontroller.
+    * `.cfg` file extension must be included.
+    * **On Linux there is a case-sensitivity issue with this setting**.  OpenOCD config files are all lowercase, but `"target"` must be uppercase.  On Linux, manually set this value to the lowercase target .cfg file matching the `"target"` config option.  Ex:  `""M4_OCD_target_file":"max32670.cfg"`
+    * Default value: `"${config:target}.cfg"`
 
-### Using Debug Terminal
+* `"RV_OCD_interface_file"`
+    * Sets the OpenOCD interface file to use to connect to the RISC-V core.  This should match the debugger being used for the RISC-V core.
+    * `.cfg` file extension must be included.
+    * Default value: `"cmsis-dap.cfg"`
 
-Debug terminal shows more information on status and detected words. 
+* `"RV_OCD_target_file"`
+    * Sets the OpenOCD target file to use for the RISC-V core.
+    * `.cfg` file extension must be included.
+    * Default value: `"${config:target}_riscv.cfg"`
 
-The USB cable connected to CN1 (USB/PWR) provides power and serial communication.
+* `"GCC_version"`
+    * Sets the version of the Arm Embedded GCC to use, including toolchain binaries and the standard library version.
 
-To configure PC terminal program select correct COM port and settings as follow:
+* `"v_xPack_GCC"`
+    * Sets the version of the xPack RISC-V GCC to use.
 
-![](Resources/Terminal2.png)
+* `"OCD_path"`
+    * Where to find the OpenOCD.
+    * Default value: `"${config:MAXIM_PATH}/Tools/OpenOCD"`
 
-After turning on power or pressing reset button the following message will appear in terminal window:
+* `"ARM_GCC_path"`
+    * Where to find the Arm Embedded GCC Toolchain.
+    * Default value: `"${config:MAXIM_PATH}/Tools/GNUTools/gcc-arm-none-eabi-${config:GCC_version}"`
 
-![](Resources/Terminal1.png)
+* `"RV_GCC_path"`
+    * Where to find the RISC-V GCC Toolchain.
+    * Default value: `${config:MAXIM_PATH}/Tools/xPacks/riscv-none-embed-gcc/${config:v_xPack_GCC}`
 
+* `"Make_path"`
+    * Where to find Make binaries (only used on Windows)
+    * Default value: `"${config:MAXIM_PATH}/Tools/MinGW/msys/1.0/bin"`
 
+## Setting Search Paths for Intellisense
+VS Code's intellisense engine must be told where to find the header files for your source code.  By default, Maxim's perpiheral drivers, the C standard libraries, and all of the sub-directories of the workspace will be searched for header files to use with Intellisense.  If VS Code throws an error on an `#include` statement (and the file exists), then a search path is most likely missing.
 
-Terminal display after detecting words:
+To add additional search paths :
+1. Open the `.vscode/c_cpp_properties.json` file.  
 
-![](Resources/Terminal3.png)
+2. Add the include path(s) to the `configurations > includePath` list.  The paths set here should contain header files, and will be searched by the Intellisense engine and when using "Go to Declaration" in the editor.
 
+3. Add the path(s) to any relevant implementation files to the `"browse":"path"` list.  This list contains the paths that will be searched when using "Go to Definition".  
 
+# Project Creation
+### Option 1.  Copying a Pre-Made Project
+Copying a pre-made example project is a great way to get rolling quickly, and is currently the recommended method for creating new projects.  
 
-The software components of KWS20 demo are shown in diagram below:
+The release package for this project contains a `New_Project` folder designed for such purposes.  Additionally, any of the VS Code-enabled Example projects can be copied from the SDK.
 
-![](Resources/Diagram.png)
+1. Copy the existing project folder to an accessible location.  This will be the location of your new project.
 
+2. (Optional) Rename the folder.  For example, I might rename the folder to `MyProject`.
 
+3. Open the project in VS Code (`File -> Open Folder...`)
 
-## CNN Model
+4. Set your target microcontroller and board correctly.  See [Basic Config Options](#basic-config-options)
 
-The KWS20 v.3 Convolutional Neural Network (CNN) model consists of **1D** CNN with 8 layers and one fully connected layer to recognize keyword from 20 words dictionary used for training.
+5. `CTRL+SHIFT+P -> Reload Window` to re-parse the project settings.
 
-```python
-class AI85KWS20Netv3(nn.Module):
-    """
-    Compound KWS20 v3 Audio net, all with Conv1Ds
-    """
+6. That's it!  The existing project is ready to build, debug, and modify.
 
-    # num_classes = n keywords + 1 unknown
-    def __init__(
-            self,
-            num_classes=21,
-            num_channels=128,
-            dimensions=(128, 1),  # pylint: disable=unused-argument
-            bias=False,
-            **kwargs
+### Option 2 - Creating a Project from Scratch
+If you want to start from scratch, take this option.
 
-    ):
-        super().__init__()
-        self.drop = nn.Dropout(p=0.2)
-        # Time: 128 Feature :128
-        self.voice_conv1 = ai8x.FusedConv1dReLU(num_channels, 100, 1, 
-                                                stride=1, padding=0,
-                                                bias=bias, **kwargs)
-        # T: 128 F: 100
-        self.voice_conv2 = ai8x.FusedConv1dReLU(100, 96, 3, 
-                                                stride=1, padding=0,
-                                                bias=bias, **kwargs)
-        # T: 126 F : 96
-        self.voice_conv3 = ai8x.FusedMaxPoolConv1dReLU(96, 64, 3, 
-                                                       stride=1, padding=1,
-                                                       bias=bias, **kwargs)
-        # T: 62 F : 64
-        self.voice_conv4 = ai8x.FusedConv1dReLU(64, 48, 3, 
-                                                stride=1, padding=0,
-                                                bias=bias, **kwargs)
-        # T : 60 F : 48
-        self.kws_conv1 = ai8x.FusedMaxPoolConv1dReLU(48, 64, 3, 
-                                                     stride=1, padding=1,
-                                                     bias=bias, **kwargs)
-        # T: 30 F : 64
-        self.kws_conv2 = ai8x.FusedConv1dReLU(64, 96, 3, 
-                                              stride=1, padding=0,
-                                              bias=bias, **kwargs)
-        # T: 28 F : 96
-        self.kws_conv3 = ai8x.FusedAvgPoolConv1dReLU(96, 100, 3, 
-                                                     stride=1, padding=1,
-                                                     bias=bias, **kwargs)
-        # T : 14 F: 100
-        self.kws_conv4 = ai8x.FusedMaxPoolConv1dReLU(100, 64, 6, 
-                                                     stride=1, padding=1,
-                                                     bias=bias, **kwargs)
-        # T : 2 F: 128
-        self.fc = ai8x.Linear(256, num_classes, bias=bias, wide=True, **kwargs)
+1. Create your project folder.  For example, I might create a new project in a workspace folder with the path: `C:\Users\Jake.Carter\workspace\MyNewProject`.
 
-    def forward(self, x):  # pylint: disable=arguments-differ
-        """Forward prop"""
-        # Run CNN
-        x = self.voice_conv1(x)
-        x = self.voice_conv2(x)
-        x = self.drop(x)
-        x = self.voice_conv3(x)
-        x = self.voice_conv4(x)
-        x = self.drop(x)
-        x = self.kws_conv1(x)
-        x = self.kws_conv2(x)
-        x = self.drop(x)
-        x = self.kws_conv3(x)
-        x = self.kws_conv4(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+2. Copy the **contents** of the `Inject` folder into the project folder created in step 2.  This includes a `.vscode` folder and a `Makefile`.  In the example above, the contents of the 'MyProject' folder would be the following :
 
-        return x
-```
+        C:\Users\Jake.Carter\workspace\MyNewProject
+        +-- \.vscode
+        +-- Makefile
 
-The CNN input is 128x128=16384 8-bit signed speech samples.
+3. Open the project in VS Code (`File -> Open Folder...`)
 
-## Network Training
+4. Set your target microcontroller correctly.  See [Basic Config Options](#basic-config-options).
 
-To invoke network training execute the script:
+5. `CTRL+SHIFT+P -> Reload Window` to re-parse the project settings.
 
-```bash
-(ai8x-training) $ ./scripts/train_kws20_v3.sh
-```
+6. Fundamentally, that's it.  Your new empty project can now be opened with `File > Open Folder` from within VS Code.  However, you'll probably want to add some source code.  See [Configuring the Makefile](#configuring-the-makefile).
 
-If this is the first time, and the dataset does not exist locally, the scrip will automatically download Google speech commands dataset (1 second keyword .wav files , sampled at 16KHz, 16-bit) into /data/KWS/raw, and process it to make appropriate training, test and validation dataset integrated in /data/KWS/process/dataset.pt. The processing step expands training dataset by using augmentation techniques like adding white noise, random time shift and stretch to improve training results. In addition, each 16000 sample word example is padded with zeros to make it 128x128=16384 speech samples. The augmentation process triples the size of dataset and could take 30min to complete.
+# Troubleshooting
+## Testing the Setup
+Opening a VSCode-Maxim project with `File > Open Folder` should make Maxim's toolchain accessible from the integrated terminal.  To test that everything is working properly : 
 
-Details of network training methodology are described in [AI8X Model Training and Quantization](https://github.com/MaximIntegratedAI/ai8x-synthesis/blob/master/README.md)
+1. Navigate to the open `TERMINAL` tab on the bottom of the VS Code application.  If a terminal is not open, you can open a new terminal with `Terminal > New Terminal` or (Ctrl+Shift+`).  
 
-After training unquantized network can be evaluated by executing script:
+   ![Terminal image](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/Terminal.JPG)
 
-```bash
-(ai8x-training) $ ./scripts/evaluate_kws20_v3.sh
-```
+2. The following commands to retrieve version numbers should be able to be run successfully from within the terminal :
 
+    * `make -v`
+    * `openocd -v`
+    * `arm-none-eabi-gcc -v`
+    * `arm-none-eabi-gdb -v`
+    
+   For example, the `make -v` command should similar to the following:
+   
+   ![Make -v example output](https://raw.githubusercontent.com/MaximIntegratedTechSupport/VSCode-Maxim/main/img/make_test.JPG)
 
-
-## Network Quantization
-
-The CNN weights generated during training need to be quantized:
-
-```bash
-(ai8x-synthesis) $ ./scripts/quantize_kws20_v3.sh
-```
-
-Details of quantization are described in [AI8X Model Training and Quantization](https://github.com/MaximIntegratedAI/ai8x-synthesis/blob/master/README.md)
-
-## Network Synthesis
-
-The network synthesis script generates a pass/fail C example code which includes necessary functions to initialize MAX78000 CNN accelerator, to load quantized CNN weights and input samples and to unload classification results. A sample input with the expected result is part of this automatically generated code to verify.  Following script generates all example projects including **kws20_v3**:
-
-```bash
-(ai8x-synthesis) $ ./gen-demos-max78000.sh
-```
-
-The **kws20_v3** bare-bone C code is partially used in KWS20 Demo. In particular, CNN initialization, weights (kernels) and helper functions to load/unload weights and samples are ported from **kws20_v3** to KWS20 Demo.
-
-
-
-## KWS20 Demo Code
-
-KWS20 demo works in two modes:  Using microphone (real-time), or offline processing:
-
-```c
-#define ENABLE_MIC_PROCESSING
-```
-
-### Microphone Mode
-
-In this mode, EVKIT I2S Mic is initialized to operate at 16KHz 32-bit samples.  In the main loop, I2S buffer is checked and sampled are stored into  **pChunkBuff** buffer.  
-
-### Offline Mode
-
-if **ENABLE_MIC_PROCESSING** is not defined, a header file containing the 16-bit samples (e.g. **kws_five.h**) should be included in the project to be used as the input . To create a header file from a wav file, use included utilities to record a wav file and convert it to header file. 
-
-```bash
-# record 3sec of 16-bit 16KHz sampled wav file 
-$ python VoiceRecorder.py -d 3 -o voicefile.wav
-# convert to header
-$ python RealtimeAudio.py -i voicefile.wav -o voicefile.h
-```
-
-### KWS20 Demo Firmware Structure
-
-Following figure shows the processing in KWS20 Demo firmware:
-
-![](Resources/KWS_Demo_flowchart.png)
-
-Collected samples from mic/file are 18/16 bit signed and are converted to 8 bit signed to feed into CNN. If Microphone mode, a high pass filter is used to filter out the DC level in captured samples. Scaled samples are stored in **pPreambleCircBuffer** circular buffer in chunks of 128 samples (bytes). 
-
-Following parameters in the firmware can be tuned:
-
-```c
-#define SAMPLE_SCALE_FACTOR    		4		// multiplies 16-bit samples by this scale factor before converting to 8-bit
-#define THRESHOLD_HGIH				350  	// voice detection threshold to find beginning of a keyword
-#define THRESHOLD_LOW				100  	// voice detection threshold to find end of a keyword
-#define SILENCE_COUNTER_THRESHOLD 	20 		// [>20] number of back to back CHUNK periods with avg < THRESHOLD_LOW to declare the end of a word
-#define PREAMBLE_SIZE				30*CHUNK// how many samples before beginning of a keyword to include
-#define INFERENCE_THRESHOLD   		49 		// min probability (0-100) to accept an inference
-```
-
-When the average absolute values of samples during last 128 number of samples goes above a threshold, the beginning of a word is marked. 
-
-The end of a word is signaled when the **SILENCE_COUNTER_THRESHOLD** back to back chunks of samples with average absolute threshold lower than **THRESHOLD_LOW** is observed. 
-
-The CNN requires 1sec worth of samples (128*128) to start processing. This window starts at **PREAMBLE_SIZE** samples prior to the beginning of the word, and ends after 16384 samples. If the end of a word is determined earlier, the pAI85Buffer sample buffer is padded with zeros.
-
-The CNN related API functions are in **cnn.c**. They are used to load weights and data, start CNN, wait for CNN to complete processing and unload the result. 
-
-If a new network is developed and synthesized, the new weight file and related API functions are needed to be ported from automatically generated kws20 example project. Furthermore, if the input layer or organization of 128x128 sample sets in the trained network is changed, **AddTranspose()** function should be changed to reflect the new sample data arrangement in CNN memory.
-
-### References
-
-https://github.com/MaximIntegratedAI/MaximAI_Documentation
-
+If the tools are not accessible from the terminal, then the system settings and/or project settings must be examined further.  (Troubleshooting guide is in progress)

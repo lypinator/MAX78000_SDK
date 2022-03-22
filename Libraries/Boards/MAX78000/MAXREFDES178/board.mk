@@ -45,10 +45,19 @@ SRCS += ov7692.c
 #SRCS += sccb_i2c.c
 SRCS += sccb.c
 
+MISC_DRIVERS_DIR=$(BOARD_DIR)/../../../MiscDrivers
+
 # Where to find BSP source files
 VPATH += $(BOARD_DIR)/Source
-VPATH += $(BOARD_DIR)/../Source
+VPATH += $(MISC_DRIVERS_DIR)
+VPATH += $(MISC_DRIVERS_DIR)/Camera
+VPATH += $(MISC_DRIVERS_DIR)/LED
+VPATH += $(MISC_DRIVERS_DIR)/PushButton
+
 
 # Where to find BSP header files
 IPATH += $(BOARD_DIR)/Include
-IPATH += $(BOARD_DIR)/../Include
+IPATH += $(MISC_DRIVERS_DIR)
+IPATH += $(MISC_DRIVERS_DIR)/Camera
+IPATH += $(MISC_DRIVERS_DIR)/LED
+IPATH += $(MISC_DRIVERS_DIR)/PushButton

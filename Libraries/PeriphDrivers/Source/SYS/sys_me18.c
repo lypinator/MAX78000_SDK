@@ -256,14 +256,10 @@ int MXC_SYS_ClockSourceEnable(mxc_sys_system_clock_t clock)
         return MXC_SYS_Clock_Timeout(MXC_F_GCR_CLKCTRL_IBRO_RDY);
         break;
 
-// TODO: Change for AI87
-#ifdef MXC_SYS_CLOCK_ISO // AI85 only    TODO: seperate ai85 and me17 files
-        
     case MXC_SYS_CLOCK_ISO:
         MXC_GCR->clkctrl |= MXC_F_GCR_CLKCTRL_ISO_EN;
         return MXC_SYS_Clock_Timeout(MXC_F_GCR_CLKCTRL_ISO_RDY);
         break;
-#endif
         
     case MXC_SYS_CLOCK_EXTCLK:
         // MXC_GCR->clkctrl |= MXC_F_GCR_CLKCTRL_EXTCLK_EN;
@@ -276,16 +272,12 @@ int MXC_SYS_ClockSourceEnable(mxc_sys_system_clock_t clock)
         return MXC_SYS_Clock_Timeout(MXC_F_GCR_CLKCTRL_INRO_RDY);
         break;
      
-// TODO: Deal with AI87   
-// #ifdef MXC_SYS_CLOCK_ERFO // ME17 only
-        
     case MXC_SYS_CLOCK_ERFO:
     	MXC_GCR->btleldoctrl |= MXC_F_GCR_BTLELDOCTRL_LDOTXEN | MXC_F_GCR_BTLELDOCTRL_LDORXEN;
 
         MXC_GCR->clkctrl |= MXC_F_GCR_CLKCTRL_ERFO_EN;
         return MXC_SYS_Clock_Timeout(MXC_F_GCR_CLKCTRL_ERFO_RDY);
         break;
-// #endif
         
     case MXC_SYS_CLOCK_ERTCO:
         MXC_GCR->clkctrl |= MXC_F_GCR_CLKCTRL_ERTCO_EN;
@@ -314,15 +306,15 @@ int MXC_SYS_ClockSourceDisable(mxc_sys_system_clock_t clock)
     case MXC_SYS_CLOCK_IPO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_IPO_EN;
         break;
-#ifdef MXC_SYS_CLOCK_ISO // ai85 only    
         
     case MXC_SYS_CLOCK_ISO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_ISO_EN;
         break;
-#endif
         
     case MXC_SYS_CLOCK_IBRO:
-        MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_IBRO_EN;
+        if((MXC_GCR->pm & MXC_F_GCR_PM_MODE) == MXC_S_GCR_PM_MODE_UPM) {
+            MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_IBRO_EN;
+        }
         break;
         
     case MXC_SYS_CLOCK_EXTCLK:
@@ -331,14 +323,11 @@ int MXC_SYS_ClockSourceDisable(mxc_sys_system_clock_t clock)
         
     case MXC_SYS_CLOCK_INRO:
         // The 80k clock is always enabled
-        break;
-        
-#ifdef MXC_SYS_CLOCK_ERFO // ME17 only    
+        break;  
         
     case MXC_SYS_CLOCK_ERFO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_ERFO_EN;
         break;
-#endif
         
     case MXC_SYS_CLOCK_ERTCO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_ERTCO_EN;

@@ -137,11 +137,15 @@ int MXC_UART_RevA_SetFrequency (mxc_uart_reva_regs_t* uart, unsigned int baud)
     uartDiv = (float) periphClock / baud;
     
     // Find the largest value of prescale that keeps div > 1
-    for (prescale = 8; prescale < 128; prescale = prescale << 1) {
+    for (prescale = 8; prescale <= 128; prescale = prescale << 1) {
         if (uartDiv / (float) prescale < 1) {
             prescale = prescale >> 1;
             break;
         }
+    }
+
+    if (prescale > 128) {
+        prescale = 128;
     }
     
     if (prescale < 8) {

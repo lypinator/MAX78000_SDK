@@ -40,7 +40,7 @@ SRCS += board.c
 SRCS += stdio.c
 SRCS += led.c
 SRCS += pb.c
-SRCS += tft_fthr.c
+SRCS += tft_ili9341.c
 SRCS += camera.c
 SRCS += ov7692.c
 SRCS += sccb.c
@@ -48,10 +48,25 @@ SRCS += max20303.c
 
 PROJ_CFLAGS+=-DCAMERA_OV7692
 
+MISC_DRIVERS_DIR=$(BOARD_DIR)/../../../MiscDrivers
+
 # Where to find BSP source files
 VPATH += $(BOARD_DIR)/Source
-VPATH += $(BOARD_DIR)/../Source
+VPATH += $(MISC_DRIVERS_DIR)
+VPATH += $(MISC_DRIVERS_DIR)/Camera
+VPATH += $(MISC_DRIVERS_DIR)/Display
+VPATH += $(MISC_DRIVERS_DIR)/LED
+VPATH += $(MISC_DRIVERS_DIR)/PushButton
+VPATH += $(MISC_DRIVERS_DIR)/PMIC
+VPATH += $(MISC_DRIVERS_DIR)/Touchscreen
+
 
 # Where to find BSP header files
 IPATH += $(BOARD_DIR)/Include
-IPATH += $(BOARD_DIR)/../Include
+IPATH += $(MISC_DRIVERS_DIR)
+IPATH += $(MISC_DRIVERS_DIR)/Camera
+IPATH += $(MISC_DRIVERS_DIR)/Display
+IPATH += $(MISC_DRIVERS_DIR)/LED
+IPATH += $(MISC_DRIVERS_DIR)/PushButton
+IPATH += $(MISC_DRIVERS_DIR)/PMIC
+IPATH += $(MISC_DRIVERS_DIR)/Touchscreen

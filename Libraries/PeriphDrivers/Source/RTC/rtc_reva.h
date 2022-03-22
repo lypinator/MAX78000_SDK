@@ -64,3 +64,4 @@ int MXC_RTC_RevA_ClearFlags (int flags);
 int MXC_RTC_RevA_GetSubSecond (void);
 int MXC_RTC_RevA_GetSecond (void);
 int MXC_RTC_RevA_GetTime (uint32_t* sec, uint32_t* subsec);
+int MXC_RTC_RevA_GetBusyFlag (void);

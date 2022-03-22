@@ -55,10 +55,10 @@
 #include "camera.h"
 #ifdef BOARD_EVKIT_V1
 #include "bitmap.h"
-#include "tft.h"
+#include "tft_ssd2119.h"
 #endif
 #ifdef BOARD_FTHR_REVA
-#include "tft_fthr.h"
+#include "tft_ili9341.h"
 #endif
 
 // Comment out USE_SAMPLEDATA to use Camera module

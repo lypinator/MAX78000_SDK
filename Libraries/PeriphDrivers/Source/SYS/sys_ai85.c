@@ -235,7 +235,7 @@ int MXC_SYS_ClockSourceEnable(mxc_sys_system_clock_t clock)
         return MXC_SYS_Clock_Timeout(MXC_F_GCR_CLKCTRL_INRO_RDY);
         break;
         
-#ifdef MXC_SYS_CLOCK_ERFO // ME17 only
+#if TARGET_NUM == 32655
         
     case MXC_SYS_CLOCK_ERFO:
         MXC_GCR->clkctrl |= MXC_F_GCR_CLKCTRL_ERFO_EN;
@@ -270,7 +270,8 @@ int MXC_SYS_ClockSourceDisable(mxc_sys_system_clock_t clock)
     case MXC_SYS_CLOCK_IPO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_IPO_EN;
         break;
-#ifdef MXC_SYS_CLOCK_ISO // ai85 only    
+
+#if TARGET_NUM == 78000 // ai85 only    
         
     case MXC_SYS_CLOCK_ISO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_ISO_EN;
@@ -289,7 +290,7 @@ int MXC_SYS_ClockSourceDisable(mxc_sys_system_clock_t clock)
         // The 80k clock is always enabled
         break;
         
-#ifdef MXC_SYS_CLOCK_ERFO // ME17 only    
+#if TARGET_NUM == 32655 // ME17 only    
         
     case MXC_SYS_CLOCK_ERFO:
         MXC_GCR->clkctrl &= ~MXC_F_GCR_CLKCTRL_ERFO_EN;
@@ -358,7 +359,7 @@ int MXC_SYS_Clock_Select(mxc_sys_system_clock_t clock)
         
         break;
         
-#ifdef MXC_SYS_CLOCK_ISO // AI85 only 
+#if TARGET_NUM == 78000 // AI85 only 
         
     case MXC_SYS_CLOCK_ISO:
     
@@ -411,7 +412,7 @@ int MXC_SYS_Clock_Select(mxc_sys_system_clock_t clock)
         
         break;
         
-#ifdef MXC_SYS_CLOCK_ERFO // ME17 only 
+#if TARGET_NUM == 32655 // ME17 only 
         
     case MXC_SYS_CLOCK_ERFO:
     

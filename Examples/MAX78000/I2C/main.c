@@ -1,15 +1,3 @@
-/**
- * @file        main.c
- * @brief       I2C Loopback Example
- * @details     This example uses the I2C Master to read/write from/to the I2C Slave. For
- *              this example you must connect P0.12 to P0.18 (SCL) and P0.13 to P0.19 (SCL). The Master
- *              will use P0.12 and P0.13. The Slave will use P0.18 and P0.19. You must also
- *              connect the pull-up jumpers (JP23 and JP24) to the proper I/O voltage.
- *              Refer to JP27 to determine the I/O voltage.
- * @note        Other devices on the EvKit will be using the same bus. This example cannot be combined with
- *              a PMIC or bluetooth example because the I2C Slave uses GPIO pins for those devices.
- */
-
 /*******************************************************************************
 * Copyright (C) Maxim Integrated Products, Inc., All Rights Reserved.
 *
@@ -43,6 +31,18 @@
 *
 ******************************************************************************/
 
+/**
+ * @file        main.c
+ * @brief       I2C Loopback Example
+ * @details     This example uses the I2C Master to read/write from/to the I2C Slave. 
+ *              For this example, user must connect I2C Master SCL pin to I2C Slave SCL 
+ *              pin and I2C Master SDA pin to I2C Slave SDA pin. User must also connect
+ *              the pull-up jumpers to the proper I/O voltage. Refer UART messages for
+ *              more information.
+ * @note        Other devices on the EvKit might be using the same I2C bus. While 
+ *              combining this example with other examples, make sure I2C pins are not
+ *              being used in other examples of any other function (like GPIO).
+ */
 
 /***** Includes *****/
 #include <stdio.h>

@@ -46,6 +46,8 @@
 extern "C" {
 #endif
 
+#define BOARD_EVKIT_V1
+
 #ifndef CONSOLE_UART
 #define CONSOLE_UART    0      /// UART instance to use for console
 #endif
@@ -53,6 +55,11 @@ extern "C" {
 #ifndef CONSOLE_BAUD
 #define CONSOLE_BAUD    115200  /// Console baud rate
 #endif
+
+#define SCCB_SCL_PORT   MXC_GPIO0        /// SCCB clock port
+#define SCCB_SCL_PIN    MXC_GPIO_PIN_16  /// SCCB clock pin
+#define SCCB_SDA_PORT   MXC_GPIO0        /// SCCB data port
+#define SCCB_SDA_PIN    MXC_GPIO_PIN_17  /// SCCB data pin
 
 #define LED_OFF         0       /// Inactive state of LEDs
 #define LED_ON          1       /// Active state of LEDs
@@ -100,6 +107,14 @@ int Console_PrepForSleep(void);
  */
 int Debug_Init(void);
 #endif // __riscv
+/**
+ * \brief   Camera power control.
+ *
+ * \param   on          1 for ON, 0 for OFF
+ *
+ * \return  Success/Fail, see \ref MXC_Error_Codes for a list of return codes.
+ */
+int Camera_Power(int on);
 
 
 #ifdef __cplusplus
